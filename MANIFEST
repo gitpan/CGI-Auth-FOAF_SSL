@@ -1,0 +1,7 @@
+Changes
+Makefile.PL
+MANIFEST
+README
+t/CGI-Auth-FOAF_SSL.t
+lib/CGI/Auth/FOAF_SSL.pm
+META.yml                                 Module meta-data (added by MakeMaker)
