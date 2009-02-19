@@ -4,4 +4,7 @@ MANIFEST
 README
 t/CGI-Auth-FOAF_SSL.t
 lib/CGI/Auth/FOAF_SSL.pm
+lib/CGI/Auth/FOAF_SSL/Agent.pm
+lib/CGI/Auth/FOAF_SSL/CertifiedThing.pm
+lib/CGI/Auth/FOAF_SSL/OnlineAccount.pm
 META.yml                                 Module meta-data (added by MakeMaker)

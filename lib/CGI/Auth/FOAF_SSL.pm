@@ -1,7 +1,7 @@
 package CGI::Auth::FOAF_SSL;
 
 BEGIN {
-	$CGI::Auth::FOAF_SSL::VERSION = '0.01';
+	$CGI::Auth::FOAF_SSL::VERSION = '0.02';
 }
 
 =head1 NAME
@@ -10,23 +10,27 @@ CGI::Auth::FOAF_SSL - Authentication using FOAF+SSL.
 
 =head1 VERSION
 
-0.01
+0.02
 
 =head1 SYNOPSIS
 
  use CGI qw(:all);
  use CGI::Auth::FOAF_SSL;
-
- my $cgi    = CGI->new;
- my $person = CGI::Auth::FOAF_SSL->new_from_cgi($cgi);
-
+  
+ my $cgi  = CGI->new;
+ my $auth = CGI::Auth::FOAF_SSL->new_from_cgi($cgi);
+  
  print header("text/html");
-
- if (defined $person && $person->is_secure)
+  
+ if (defined $auth && defined $auth->agent)
  {
  	printf("<p>Hello <a href='%s'>%s</a>! You are logged on with FOAF+SSL.</p>\n",
- 		escapeHTML($person->homepage),
- 		escapeHTML($person->name));
+ 		escapeHTML($auth->agent->homepage),
+ 		escapeHTML($auth->agent->name));
+ }
+ elsif (defined $auth && $auth->is_secure)
+ {
+ 	print "<p>Hello! You are logged on with FOAF+SSL.</p>\n";
  }
  else
  {
@@ -46,6 +50,8 @@ the "SSLVerifyClient" directive to "require".
 =cut
 
 use Carp;
+use CGI::Auth::FOAF_SSL::OnlineAccount;
+use CGI::Auth::FOAF_SSL::Agent;
 use IPC::Open2;
 use LWP::UserAgent;
 use RDF::Redland;
@@ -53,17 +59,34 @@ use 5.010000;
 use strict;
 use warnings;
 
-# @@TODO - this should be configurable.
-sub path_openssl { return '/usr/bin/openssl'; }
+=head1 CONFIGURATION
 
-# @@TODO - this should be configurable.
-sub ua_string { return "CGI::Auth::FOAF_SSL/" . $CGI::Auth::FOAF_SSL::VERSION . " "; }
+=over 8
+
+=item $CGI::Auth::FOAF_SSL::path_openssl = '/usr/bin/openssl'
+
+Set the path to the OpenSSL binary.
+
+=item $CGI::Auth::FOAF_SSL::ua_string = 'MyTool/1.0'
+
+Set the User-Agent string for any HTTP requests.
+
+=cut
+
+BEGIN {
+	$CGI::Auth::FOAF_SSL::path_openssl = '/usr/bin/openssl';
+	$CGI::Auth::FOAF_SSL::ua_string    = "CGI::Auth::FOAF_SSL/" 
+	                                   . $CGI::Auth::FOAF_SSL::VERSION
+	                                   . " ";
+}
+
+=back
 
 =head1 CONSTRUCTORS
 
 =over 8
 
-=item $person = CGI::Auth::FOAF_SSL->new($pem_encoded);
+=item $auth = CGI::Auth::FOAF_SSL->new($pem_encoded)
 
 Performs FOAF+SSL authentication on a PEM-encoded key. If authentication is
 completely unsuccessful, returns undef. Otherwise, returns a CGI::Auth::FOAF_SSL
@@ -75,16 +98,17 @@ You probably want to use C<new_from_cgi> instead.
 
 sub new
 {
-	return new_full_from_cert(@_);
+	my $rv = new_smiple(@_);
+	$rv->verify_certificate;
+	$rv->load_personal_info;
+	return $rv;
 }
 
-=item $person = CGI::Auth::FOAF_SSL->new_from_cgi($cgi_object);
+=item $auth = CGI::Auth::FOAF_SSL->new_from_cgi($cgi_object)
 
 Performs FOAF+SSL authentication on a CGI object. This is a wrapper around
 C<new> which extracts the PEM-encoded client certificate from the CGI
 request. It has the same return values as C<new>.
-
-=back
 
 =cut
 
@@ -97,9 +121,16 @@ sub new_from_cgi
 	return new($class, $cgi->https('SSL_CLIENT_CERT'));
 }
 
-# Undocumented internally used constructor.
+=item $auth = CGI::Auth::FOAF_SSL->new_smiple($pem_encoded)
 
-sub new_basic_from_cert
+Performs FOAF+SSL authentication on a PEM-encoded key. This is faster than the
+usual constructor but performs fewer of the usual checks.
+
+You probably want to use C<new_from_cgi> instead.
+
+=cut
+
+sub new_smiple
 {
 	my $class = shift;
 	my $cert  = shift;
@@ -111,7 +142,7 @@ sub new_basic_from_cert
 	# We use OpenSSL to parse the client certificate. There is an OpenSSL module
 	# in CPAN, but it's poorly documented, so we'll just use the command-line
 	# client instead. You may want to provide a full path here...
-	my $openssl = path_openssl;
+	my $openssl = $CGI::Auth::FOAF_SSL::path_openssl;
 	
 	# First check certificate dates.
 	my $pid = open2(\*READ, \*WRITE, "$openssl x509 -checkend 0");
@@ -148,7 +179,7 @@ sub new_basic_from_cert
 	
 	# Only allow FOAF+SSL certificates.
 	return unless $alt_name =~ /^URI:(.+)$/i;
-	$rv->{'account_uri'} = $1;
+	$rv->{'cert_subject_uri'} = $1;
 	
 	# Modulus.
 	$pid = 0;
@@ -171,43 +202,58 @@ sub new_basic_from_cert
 	bless $rv, $class;
 }
 
-# Undocumented internally used constructor.
+=back
 
-sub new_intermediate_from_cert
+=head1 PUBLIC METHODS
+
+=over 8
+
+=item $auth->verify_certificate
+
+This loads the certificate subject URI and checks that the URI confirms
+the certificate's details. If you constructed the object with C<new> or
+C<new_from_cgi>, then you do not need to call this. It is only useful if
+you constructed the object using C<new_smiple>.
+
+Returns true iff the certificate checks out correctly.
+
+=cut
+
+sub verify_certificate
 {
-	my $rv = new_basic_from_cert(@_);
-	return $rv unless ((defined $rv) && ($rv->{'validation'} >= 1));
+	my $rv = shift;
+	return 0 unless ((defined $rv) && ($rv->{'validation'} >= 1));
 
-	my $ua       = LWP::UserAgent->new(agent=>ua_string); 
-	my $response = $ua->get($rv->{'account_uri'});
+	my $ua       = LWP::UserAgent->new(agent=>$CGI::Auth::FOAF_SSL::ua_string); 
+	my $response = $ua->get($rv->{'cert_subject_uri'});
 	
-	my $account  = RDF::Redland::URI->new($rv->{'account_uri'});
+	my $account  = RDF::Redland::URI->new($rv->{'cert_subject_uri'});
 	my $storage  = RDF::Redland::Storage->new("hashes", "test", "new='yes',hash-type='memory'");
 	my $model    = RDF::Redland::Model->new($storage, "");	
 	my $parser   = RDF::Redland::Parser->new(undef, $response->header('content-type'));
 	$parser->parse_string_into_model($response->content, $account, $model);
 	
-	my $query_string = sprintf("SELECT ?person ?hexModulus ?decExponent "
+	$rv->{'cert_subject_model'} = $model;
+	
+	my $query_string = sprintf("SELECT ?decExponent ?hexModulus "
 	                          ."WHERE { "
-	                          ."    ?person <http://xmlns.com/foaf/0.1/holdsAccount> <%s> . "
 	                          ."    ?key <http://www.w3.org/ns/auth/cert#identity> <%s> . "
 	                          ."    ?key <http://www.w3.org/ns/auth/rsa#modulus> ?modulus . "
 	                          ."    ?modulus <http://www.w3.org/ns/auth/cert#hex> ?hexModulus . "
 	                          ."    ?key <http://www.w3.org/ns/auth/rsa#public_exponent> ?exponent . "
 	                          ."    ?exponent <http://www.w3.org/ns/auth/cert#decimal> ?decExponent . "
 	                          ."}",
-	                          $rv->{'account_uri'}, $rv->{'account_uri'});
+	                          $rv->{'cert_subject_uri'});
 	my $query   = RDF::Redland::Query->new($query_string, $account, undef, "sparql");
 	my $results = $model->query_execute($query);
 	if (!$results->finished)
 	{
-		$rv->{'identity'}                  = $results->binding_value(0)->uri->as_string;
+		$rv->{'correct_cert_exponent_dec'} = $results->binding_value(0)->literal_value;
 		$rv->{'correct_cert_modulus_hex'}  = $results->binding_value(1)->literal_value;
-		$rv->{'correct_cert_exponent_dec'} = $results->binding_value(2)->literal_value;
 	}
 
-	$rv->{'correct_cert_modulus_hex'}  =~ s/[^A-Z0-9]//ig;
 	$rv->{'correct_cert_exponent_dec'} =~ s/[^0-9]//ig;
+	$rv->{'correct_cert_modulus_hex'}  =~ s/[^A-Z0-9]//ig;
 	$rv->{'correct_cert_modulus_hex'}  = uc($rv->{'correct_cert_modulus_hex'});
 
 	if (($rv->{'correct_cert_modulus_hex'} eq $rv->{'cert_modulus_hex'})
@@ -216,51 +262,187 @@ sub new_intermediate_from_cert
 		$rv->{validation}++;
 		delete $rv->{'correct_cert_exponent_dec'};
 		delete $rv->{'correct_cert_modulus_hex'};
+		return 1;
 	}
-	
-	$rv->{'account_details'} = $model;
-	
-	return $rv;
+
+	return 0;
 }
 
-# Undocumented internally used constructor.
+=item $auth->load_personal_info
 
-sub new_full_from_cert
+This loads the certificate subject URI and investigates that entity. If you
+constructed the object with C<new> or C<new_from_cgi>, then you do not need
+to call this. It is only useful if you constructed the object using
+C<new_smiple>.
+
+Returns true iff some personal or account details could be found.
+
+=cut
+
+sub load_personal_info
 {
-	my $rv = new_intermediate_from_cert(@_);
-	return $rv unless ((defined $rv) && ($rv->{'validation'} >= 2));
+	my $rv = shift;
+	
+	return 0 unless ((defined $rv) && ($rv->{'validation'} >= 2));
+	
+	# List of RDF classes that the module understands.
+	my @agentTypes   = ('http://xmlns.com/foaf/0.1/Person',
+	                    'http://xmlns.com/foaf/0.1/Agent',
+	                    'http://xmlns.com/foaf/0.1/Organisation',
+	                    'http://xmlns.com/foaf/0.1/Group');
+	my @accountTypes = ('http://xmlns.com/foaf/0.1/OnlineAccount',
+	                    'http://xmlns.com/foaf/0.1/OnlineChatAccount',
+	                    'http://xmlns.com/foaf/0.1/OnlineGamingAccount',
+	                    'http://xmlns.com/foaf/0.1/OnlineEcommerceAccount',
+	                    'http://rdfs.org/sioc/ns#User');
 
-	my $ua       = LWP::UserAgent->new(agent=>ua_string); 
-	my $response = $ua->get($rv->{'identity'});
-	
-	my $account  = RDF::Redland::URI->new($rv->{'identity'});
-	my $storage  = RDF::Redland::Storage->new("hashes", "test", "new='yes',hash-type='memory'");
-	my $model    = RDF::Redland::Model->new($storage, "");	
-	my $parser   = RDF::Redland::Parser->new(undef, $response->header('content-type'));
-	$parser->parse_string_into_model($response->content, $account, $model);
-	
-	my $query_string = sprintf("ASK "
+	# Check to see if this 	
+	my $query_string = sprintf("SELECT ?type "
 	                          ."WHERE { "
-	                          ."    <%s> <http://xmlns.com/foaf/0.1/holdsAccount> <%s> . "
+	                          ."    <%s> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type'> ?type . "
 	                          ."}",
-	                          $rv->{'identity'}, $rv->{'account_uri'});
-	my $query   = RDF::Redland::Query->new($query_string, $account, undef, "sparql");
-	my $results = $model->query_execute($query);
-	if ($results->is_boolean && $results->get_boolean)
+	                          $rv->{'cert_subject_uri'});
+	my $query   = RDF::Redland::Query->new($query_string, RDF::Redland::URI->new($rv->{'cert_subject_uri'}), undef, "sparql");
+	my $results = $rv->{'cert_subject_model'}->query_execute($query);
+	
+	RESULT: while (!$results->finished)
 	{
-		$rv->{validation}++;
+		my $type = $results->binding_value(0)->uri->as_string;
+		
+		foreach my $t (@agentTypes)
+		{
+			if ($type eq $t)
+			{
+				$rv->{'cert_subject_type'} = 'Agent';
+				last RESULT;
+			}
+		}
+		
+		foreach my $t (@accountTypes)
+		{
+			if ($type eq $t)
+			{
+				$rv->{'cert_subject_type'} = 'OnlineAccount';
+				last RESULT;
+			}
+		}
+		
+		$results->next_result;
+	}
+
+	# No explicit rdf:type.
+	# Might be able to figure it out from existence of certain predicates:
+	#      - foaf:holdsAccount
+	#      - foaf:accountServiceHomepage
+	#      - foaf:accountName
+	#      - http://rdfs.org/sioc/ns#account_of
+
+	my $retrievedAgentUri;
+
+	if (!defined $rv->{'cert_subject_type'}
+	||  $rv->{'cert_subject_type'} eq 'OnlineAccount')
+	{
+		my $query = RDF::Redland::Query->new(
+			sprintf('SELECT ?person WHERE { <%s> <http://rdfs.org/sioc/ns#account_of> ?person . }', $rv->{'cert_subject_uri'}),
+			RDF::Redland::URI->new($rv->{'cert_subject_uri'}),
+			undef,
+			'sparql');
+		my $results = $rv->{'cert_subject_model'}->query_execute($query);
+		if (!$results->finished)
+		{
+			$rv->{'cert_subject_type'} = 'OnlineAccount';
+			$retrievedAgentUri = $results->binding_value(0)->uri->as_string
+				unless defined $retrievedAgentUri;
+		}
+	}
+
+	if (!defined $rv->{'cert_subject_type'}
+	||  $rv->{'cert_subject_type'} eq 'OnlineAccount')
+	{
+		my $query = RDF::Redland::Query->new(
+			sprintf('SELECT ?person WHERE { ?person <http://xmlns.com/foaf/0.1/holdsAccount> <%s> . }', $rv->{'cert_subject_uri'}),
+			RDF::Redland::URI->new($rv->{'cert_subject_uri'}),
+			undef,
+			'sparql');
+		my $results = $rv->{'cert_subject_model'}->query_execute($query);
+		if (!$results->finished)
+		{
+			$rv->{'cert_subject_type'} = 'OnlineAccount';
+			$retrievedAgentUri = $results->binding_value(0)->uri->as_string
+				unless defined $retrievedAgentUri;
+		}
+	}
+
+	unless (defined $rv->{'cert_subject_type'})
+	{
+		my $query = RDF::Redland::Query->new(
+			sprintf('ASK WHERE { <%s> <http://xmlns.com/foaf/0.1/accountName> ?o . }', $rv->{'cert_subject_uri'}),
+			RDF::Redland::URI->new($rv->{'cert_subject_uri'}),
+			undef,
+			'sparql');
+		my $results = $rv->{'cert_subject_model'}->query_execute($query);
+		if ($results->get_boolean)
+			{ $rv->{'cert_subject_type'} = 'OnlineAccount'; }
+	}
+
+	unless (defined $rv->{'cert_subject_type'})
+	{
+		my $query = RDF::Redland::Query->new(
+			sprintf('ASK WHERE { <%s> <http://xmlns.com/foaf/0.1/accountServiceHomepage> ?o . }', $rv->{'cert_subject_uri'}),
+			RDF::Redland::URI->new($rv->{'cert_subject_uri'}),
+			undef,
+			'sparql');
+		my $results = $rv->{'cert_subject_model'}->query_execute($query);
+		if ($results->get_boolean)
+			{ $rv->{'cert_subject_type'} = 'OnlineAccount'; }
+	}
+
+	if (defined $rv->{'cert_subject_type'} 
+	&&  $rv->{'cert_subject_type'} eq 'Agent')
+	{
+		$rv->{'agent'} = CGI::Auth::FOAF_SSL::Agent->new(
+			$rv->{'cert_subject_uri'},
+			$rv->{'cert_subject_model'});
+			
+		$rv->{'thing'} = $rv->{'agent'};
+
+		return 1;
 	}
 	
-	$rv->{'person_details'} = $model;
-	
-	return $rv;
+	elsif (defined $rv->{'cert_subject_type'} 
+	&&  $rv->{'cert_subject_type'} eq 'OnlineAccount')
+	{
+		$rv->{'account'} = CGI::Auth::FOAF_SSL::OnlineAccount->new(
+			$rv->{'cert_subject_uri'},
+			$rv->{'cert_subject_model'});
+
+		$rv->{'thing'} = $rv->{'account'};
+
+		if (defined $retrievedAgentUri)
+		{
+			my $ua       = LWP::UserAgent->new(agent=>$CGI::Auth::FOAF_SSL::ua_string); 
+			my $response = $ua->get($retrievedAgentUri);
+			
+			my $account  = RDF::Redland::URI->new($retrievedAgentUri);
+			my $storage  = RDF::Redland::Storage->new("hashes", "test", "new='yes',hash-type='memory'");
+			my $model    = RDF::Redland::Model->new($storage, "");	
+			my $parser   = RDF::Redland::Parser->new(undef, $response->header('content-type'));
+			$parser->parse_string_into_model($response->content, RDF::Redland::URI->new($retrievedAgentUri), $model);
+			
+			$rv->{'agent'} = CGI::Auth::FOAF_SSL::Agent->new($retrievedAgentUri, $model);
+		}
+		
+		return 1;
+	}
+
+	$rv->{'thing'} = CGI::Auth::FOAF_SSL::CertifiedThing->new(
+		$rv->{'cert_subject_uri'},
+		$rv->{'cert_subject_model'});
+
+	return 0;
 }
 
-=head1 PUBLIC METHODS
-
-=over 8
-
-=item $person->is_secure;
+=item $bool = $auth->is_secure
 
 Returns true iff the authentication process was completely successful.
 
@@ -269,133 +451,54 @@ Returns true iff the authentication process was completely successful.
 sub is_secure
 {
 	my $this = shift;
-	return ($this->{'validation'}==3);
+	return ($this->{'validation'} >= 2);
 }
 
-=item $person->identity;
+=item $agent = $auth->agent
 
-Returns an identifying URI for the agent (person, organisation, robot) making
-the authenticated HTTP request. This URI is a URI in the RDF sense of the word.
-It is not their homepage.
+Returns an object which represents the agent making the request. This object
+includes the following methods: C<name>, C<homepage>, C<mbox> and C<img>.
+
+Another method included is C<identity> which returns the RDF URI representing
+the agent.
 
 =cut
 
-sub identity
+sub agent
 {
 	my $this = shift;
-	return $this->{'identity'};
+	return $this->{'agent'};
 }
 
-=item $person->redland;
+=item $account = $auth->account
 
-Returns an RDF::Redland::Model which should contain some data about the
-agent making the authenticated HTTP request.
+Returns an object which represents the account making the request. This object
+includes the following methods: C<name>, C<homepage>.
+
+Another method included is C<identity> which returns the RDF URI representing
+the account.
 
 =cut
 
-sub redland
+sub account
 {
 	my $this = shift;
-	return $this->{'person_details'};
+	return $this->{'account'};
 }
 
-=item $person->name;
+=item $thing = $auth->certified_thing
 
-Returns the name of the agent making the authenticated HTTP request. That is,
-if the agent is a person, this will tell you what the person's name is.
+Returns an object representing the thing which the certificate belongs to.
+This object includes a method called C<identity> which returns its RDF URI.
 
-Returns undef if unable to determine the name.
+Usually you will want to use C<agent> or C<account> instead.
 
 =cut
 
-sub name
+sub certified_thing
 {
 	my $this = shift;
-	
-	unless (defined $this->{'name'})
-	{
-		my $model = $this->{'person_details'};
-		
-		my $query_string = sprintf("SELECT ?name "
-										  ."WHERE { "
-										  ."    <%s> <http://xmlns.com/foaf/0.1/name> ?name . "
-										  ."}",
-										  $this->{'identity'});
-		my $query   = RDF::Redland::Query->new($query_string, RDF::Redland::URI->new($this->{'identity'}), undef, "sparql");
-		my $results = $model->query_execute($query);
-		if (!$results->finished)
-		{
-			$this->{'name'} = $results->binding_value(0)->literal_value;
-		}
-	}
-	
-	unless (defined $this->{'name'})
-	{
-		my $model = $this->{'person_details'};
-		
-		my $query_string = sprintf("SELECT ?name "
-										  ."WHERE { "
-										  ."    <%s> <http://xmlns.com/foaf/0.1/nick> ?name . "
-										  ."}",
-										  $this->{'identity'});
-		my $query   = RDF::Redland::Query->new($query_string, RDF::Redland::URI->new($this->{'identity'}), undef, "sparql");
-		my $results = $model->query_execute($query);
-		if (!$results->finished)
-		{
-			$this->{'name'} = $results->binding_value(0)->literal_value;
-		}
-	}
-	
-	return $this->{'name'};
-}
-
-=item $person->homepage;
-
-Returns the homepage of the agent making the authenticated HTTP request. 
-
-Returns undef if unable to determine the homepage.
-
-=cut
-
-sub homepage
-{
-	my $this = shift;
-	
-	unless (defined $this->{'homepage'})
-	{
-		my $model = $this->{'person_details'};
-		
-		my $query_string = sprintf("SELECT ?homepage "
-										  ."WHERE { "
-										  ."    <%s> <http://xmlns.com/foaf/0.1/homepage> ?homepage . "
-										  ."}",
-										  $this->{'identity'});
-		my $query   = RDF::Redland::Query->new($query_string, RDF::Redland::URI->new($this->{'identity'}), undef, "sparql");
-		my $results = $model->query_execute($query);
-		if (!$results->finished)
-		{
-			$this->{'homepage'} = $results->binding_value(0)->uri->as_string;
-		}
-	}
-	
-	unless (defined $this->{'homepage'})
-	{
-		my $model = $this->{'person_details'};
-		
-		my $query_string = sprintf("SELECT ?homepage "
-										  ."WHERE { "
-										  ."    <%s> <http://xmlns.com/foaf/0.1/page> ?homepage . "
-										  ."}",
-										  $this->{'identity'});
-		my $query   = RDF::Redland::Query->new($query_string, RDF::Redland::URI->new($this->{'identity'}), undef, "sparql");
-		my $results = $model->query_execute($query);
-		if (!$results->finished)
-		{
-			$this->{'homepage'} = $results->binding_value(0)->uri->as_string;
-		}
-	}
-	
-	return $this->{'homepage'};
+	return $this->{'thing'};
 }
 
 1;

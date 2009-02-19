@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:                CGI-Auth-FOAF_SSL
-version:             0.01
+version:             0.02
 abstract:            Authentication using FOAF+SSL.
 license:             ~
 author:              
