@@ -1,7 +1,7 @@
 package CGI::Auth::FOAF_SSL;
 
 BEGIN {
-	$CGI::Auth::FOAF_SSL::VERSION = '0.03';
+	$CGI::Auth::FOAF_SSL::VERSION = '0.04';
 }
 
 =head1 NAME
@@ -10,7 +10,7 @@ CGI::Auth::FOAF_SSL - Authentication using FOAF+SSL.
 
 =head1 VERSION
 
-0.03
+0.04
 
 =head1 SYNOPSIS
 
@@ -223,8 +223,6 @@ sub new_smiple
 	$rv->{'cert_exponent_dec'} = $1;
 	$rv->{'cert_exponent_hex'} = $2;	
 	
-	$rv->{'validation'} = 1;
-	
 	bless $rv, $class;
 }
 
@@ -248,7 +246,7 @@ Returns true iff the certificate checks out correctly.
 sub verify_certificate
 {
 	my $rv = shift;
-	return 0 unless ((defined $rv) && ($rv->{'validation'} >= 1));
+	return 0 unless defined $rv;
 
 	my $ua = LWP::UserAgent->new(agent=>$CGI::Auth::FOAF_SSL::ua_string); 
 	$ua->default_headers->push_header('Accept' => "application/rdf+xml, */*");
@@ -290,7 +288,7 @@ sub verify_certificate
 	if (($rv->{'correct_cert_modulus_hex'} eq $rv->{'cert_modulus_hex'})
 	&&  ($rv->{'correct_cert_exponent_dec'} == $rv->{'cert_exponent_dec'}))
 	{
-		$rv->{validation}++;
+		$rv->{validation} = 'cert';
 		delete $rv->{'correct_cert_exponent_dec'};
 		delete $rv->{'correct_cert_modulus_hex'};
 		return 1;
@@ -314,7 +312,7 @@ sub load_personal_info
 {
 	my $rv = shift;
 	
-	return 0 unless ((defined $rv) && ($rv->{'validation'} >= 2));
+	return 0 unless ((defined $rv) && ($rv->{'validation'} eq 'cert'));
 	
 	# List of RDF classes that the module understands.
 	my @agentTypes   = ('http://xmlns.com/foaf/0.1/Person',
@@ -330,7 +328,7 @@ sub load_personal_info
 	# Check to see if $self->identity is a foaf:Agent or a foaf:OnlineAccount.
 	my $query_string = sprintf("SELECT ?type "
 	                          ."WHERE { "
-	                          ."    <%s> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type'> ?type . "
+	                          ."    <%s> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?type . "
 	                          ."}",
 	                          $rv->{'cert_subject_uri'});
 	my $query   = RDF::Redland::Query->new($query_string, RDF::Redland::URI->new($rv->{'cert_subject_uri'}), undef, "sparql");
@@ -437,6 +435,7 @@ sub load_personal_info
 			$rv->{'cert_subject_model'});
 			
 		$rv->{'thing'} = $rv->{'agent'};
+		$rv->{'validation'} = 'agent';
 
 		return 1;
 	}
@@ -467,6 +466,18 @@ sub load_personal_info
 				{
 					$parser->parse_string_into_model($response->content, RDF::Redland::URI->new($retrievedAgentUri), $model);
 					$rv->{'agent'} = CGI::Auth::FOAF_SSL::Agent->new($retrievedAgentUri, $model);
+					
+					my $query = RDF::Redland::Query->new(
+						sprintf('ASK WHERE { <%s> <http://xmlns.com/foaf/0.1/holdsAccount> <%s> . }',
+							$retrievedAgentUri, $rv->{'cert_subject_uri'}),
+						RDF::Redland::URI->new($retrievedAgentUri),
+						undef,
+						'sparql');
+					my $results = $model->query_execute($query);
+					if ($results->get_boolean)
+					{
+						$rv->{'validation'} = 'agent';
+					}
 				}
 			}
 		}
@@ -490,7 +501,7 @@ Returns true iff the authentication process was completely successful.
 sub is_secure
 {
 	my $this = shift;
-	return ($this->{'validation'} >= 2);
+	return ($this->{'validation'} eq 'agent');
 }
 
 =item $agent = $auth->agent

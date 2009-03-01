@@ -11,3 +11,7 @@ Revision history for Perl extension CGI::Auth::FOAF_SSL.
 0.03  Sun Mar  1 11:11:11 2009
 	- Bug fixes in new_from_cgi()
 	- Improved documentation
+
+0.04  Sun Mar  1 22:18:00 2009
+	- Bug fix for foaf:Agents
+	- Security improvement for foaf:OnlineAccounts
