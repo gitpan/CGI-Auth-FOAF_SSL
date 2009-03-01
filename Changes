@@ -7,3 +7,7 @@ Revision history for Perl extension CGI::Auth::FOAF_SSL.
 0.02  Thu Feb 19 22:41:00 2009
 	- changed API
 	- allow subjectAltName to point to either foaf:Person or foaf:OnlineAccount
+
+0.03  Sun Mar  1 11:11:11 2009
+	- Bug fixes in new_from_cgi()
+	- Improved documentation

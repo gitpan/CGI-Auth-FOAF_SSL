@@ -1,7 +1,7 @@
 package CGI::Auth::FOAF_SSL;
 
 BEGIN {
-	$CGI::Auth::FOAF_SSL::VERSION = '0.02';
+	$CGI::Auth::FOAF_SSL::VERSION = '0.03';
 }
 
 =head1 NAME
@@ -10,27 +10,30 @@ CGI::Auth::FOAF_SSL - Authentication using FOAF+SSL.
 
 =head1 VERSION
 
-0.02
+0.03
 
 =head1 SYNOPSIS
 
  use CGI qw(:all);
  use CGI::Auth::FOAF_SSL;
-  
+ 
  my $cgi  = CGI->new;
  my $auth = CGI::Auth::FOAF_SSL->new_from_cgi($cgi);
-  
+ 
  print header("text/html");
-  
- if (defined $auth && defined $auth->agent)
+ 
+ if (defined $auth && $auth->is_secure)
  {
- 	printf("<p>Hello <a href='%s'>%s</a>! You are logged on with FOAF+SSL.</p>\n",
- 		escapeHTML($auth->agent->homepage),
- 		escapeHTML($auth->agent->name));
- }
- elsif (defined $auth && $auth->is_secure)
- {
- 	print "<p>Hello! You are logged on with FOAF+SSL.</p>\n";
+ 	if (defined $auth->agent)
+ 	{
+ 		printf("<p>Hello <a href='%s'>%s</a>! You are logged on with FOAF+SSL.</p>\n",
+ 			escapeHTML($auth->agent->homepage),
+ 			escapeHTML($auth->agent->name));
+ 	}
+ 	else
+ 	{
+ 		print "<p>Hello! You are logged on with FOAF+SSL.</p>\n";
+ 	}
  }
  else
  {
@@ -43,13 +46,25 @@ FOAF+SSL is a simple authentication scheme described at
 L<http://esw.w3.org/topic/foaf+ssl>. This module provides FOAF+SSL
 authentication for CGI scripts.
 
-This requires the web server to be using HTTPS and to be configured to request
-client certificates. If you are using Apache, this means that you want to set
-the "SSLVerifyClient" directive to "require".
+This requires the web server to be using HTTPS and to be configured to
+request client certificates and to pass the certificate details on as
+environment variables for scripts. If you are using Apache, this means
+that you want to set the following directives in your SSL virtual host
+setup:
+
+ SSLEngine on
+ # SSLCipherSuite (see Apache documentation)
+ # SSLProtocol (see Apache documentation)
+ # SSLCertificateFile (see Apache documentation)
+ # SSLCertificateKeyFile (see Apache documentation)
+ SSLVerifyClient optional_no_ca
+ SSLVerifyDepth  1
+ SSLOptions +StdEnvVars +ExportCertData
 
 =cut
 
 use Carp;
+use CGI;
 use CGI::Auth::FOAF_SSL::OnlineAccount;
 use CGI::Auth::FOAF_SSL::Agent;
 use IPC::Open2;
@@ -99,8 +114,12 @@ You probably want to use C<new_from_cgi> instead.
 sub new
 {
 	my $rv = new_smiple(@_);
+	
+	return undef unless $rv;
+	
 	$rv->verify_certificate;
 	$rv->load_personal_info;
+	
 	return $rv;
 }
 
@@ -117,8 +136,15 @@ sub new_from_cgi
 	my $class = shift;
 	my $cgi   = shift;
 	
-	return undef unless ($cgi->https);
-	return new($class, $cgi->https('SSL_CLIENT_CERT'));
+	return undef unless $cgi->https;
+	
+	# This should work, but doesn't!!
+	# my $cert = $cgi->https('SSL_CLIENT_CERT');
+	
+	# This does work, but is less elegant.
+	my $cert = $ENV{'SSL_CLIENT_CERT'};
+	
+	return $class->new($cert);
 }
 
 =item $auth = CGI::Auth::FOAF_SSL->new_smiple($pem_encoded)
@@ -224,15 +250,20 @@ sub verify_certificate
 	my $rv = shift;
 	return 0 unless ((defined $rv) && ($rv->{'validation'} >= 1));
 
-	my $ua       = LWP::UserAgent->new(agent=>$CGI::Auth::FOAF_SSL::ua_string); 
+	my $ua = LWP::UserAgent->new(agent=>$CGI::Auth::FOAF_SSL::ua_string); 
+	$ua->default_headers->push_header('Accept' => "application/rdf+xml, */*");
 	my $response = $ua->get($rv->{'cert_subject_uri'});
+	
+	return 0 unless length $response->content;
 	
 	my $account  = RDF::Redland::URI->new($rv->{'cert_subject_uri'});
 	my $storage  = RDF::Redland::Storage->new("hashes", "test", "new='yes',hash-type='memory'");
 	my $model    = RDF::Redland::Model->new($storage, "");	
 	my $parser   = RDF::Redland::Parser->new(undef, $response->header('content-type'));
-	$parser->parse_string_into_model($response->content, $account, $model);
 	
+	return 0 unless $parser;
+
+	$parser->parse_string_into_model($response->content, $account, $model);	
 	$rv->{'cert_subject_model'} = $model;
 	
 	my $query_string = sprintf("SELECT ?decExponent ?hexModulus "
@@ -296,7 +327,7 @@ sub load_personal_info
 	                    'http://xmlns.com/foaf/0.1/OnlineEcommerceAccount',
 	                    'http://rdfs.org/sioc/ns#User');
 
-	# Check to see if this 	
+	# Check to see if $self->identity is a foaf:Agent or a foaf:OnlineAccount.
 	my $query_string = sprintf("SELECT ?type "
 	                          ."WHERE { "
 	                          ."    <%s> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type'> ?type . "
@@ -330,7 +361,8 @@ sub load_personal_info
 		$results->next_result;
 	}
 
-	# No explicit rdf:type.
+	# No explicit rdf:type. :-(
+	#
 	# Might be able to figure it out from existence of certain predicates:
 	#      - foaf:holdsAccount
 	#      - foaf:accountServiceHomepage
@@ -420,16 +452,23 @@ sub load_personal_info
 
 		if (defined $retrievedAgentUri)
 		{
-			my $ua       = LWP::UserAgent->new(agent=>$CGI::Auth::FOAF_SSL::ua_string); 
+			my $ua = LWP::UserAgent->new(agent=>$CGI::Auth::FOAF_SSL::ua_string); 
+			$ua->default_headers->push_header('Accept' => "application/rdf+xml, */*");
 			my $response = $ua->get($retrievedAgentUri);
 			
-			my $account  = RDF::Redland::URI->new($retrievedAgentUri);
-			my $storage  = RDF::Redland::Storage->new("hashes", "test", "new='yes',hash-type='memory'");
-			my $model    = RDF::Redland::Model->new($storage, "");	
-			my $parser   = RDF::Redland::Parser->new(undef, $response->header('content-type'));
-			$parser->parse_string_into_model($response->content, RDF::Redland::URI->new($retrievedAgentUri), $model);
-			
-			$rv->{'agent'} = CGI::Auth::FOAF_SSL::Agent->new($retrievedAgentUri, $model);
+			if (length $response->content)
+			{
+				my $account  = RDF::Redland::URI->new($retrievedAgentUri);
+				my $storage  = RDF::Redland::Storage->new("hashes", "test", "new='yes',hash-type='memory'");
+				my $model    = RDF::Redland::Model->new($storage, "");	
+				my $parser   = RDF::Redland::Parser->new(undef, $response->header('content-type'));
+
+				if ($parser)
+				{
+					$parser->parse_string_into_model($response->content, RDF::Redland::URI->new($retrievedAgentUri), $model);
+					$rv->{'agent'} = CGI::Auth::FOAF_SSL::Agent->new($retrievedAgentUri, $model);
+				}
+			}
 		}
 		
 		return 1;
@@ -512,6 +551,8 @@ __END__
 L<CGI>
 
 L<http://esw.w3.org/topic/foaf+ssl>
+
+L<http://httpd.apache.org/docs/2.0/mod/mod_ssl.html>
 
 =head1 AUTHOR
 
