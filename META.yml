@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:                CGI-Auth-FOAF_SSL
-version:             0.04
+version:             0.05
 abstract:            Authentication using FOAF+SSL.
 license:             ~
 author:              
@@ -11,6 +11,7 @@ requires:
     Carp:                          1
     CGI:                           3
     IPC::Open2:                    1
+    RDF::RDFa::Parser:             0.11
     RDF::Redland:                  1
 meta-spec:
     url:     http://module-build.sourceforge.net/META-spec-v1.3.html

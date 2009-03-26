@@ -1,7 +1,7 @@
 package CGI::Auth::FOAF_SSL;
 
 BEGIN {
-	$CGI::Auth::FOAF_SSL::VERSION = '0.04';
+	$CGI::Auth::FOAF_SSL::VERSION = '0.05';
 }
 
 =head1 NAME
@@ -10,7 +10,7 @@ CGI::Auth::FOAF_SSL - Authentication using FOAF+SSL.
 
 =head1 VERSION
 
-0.04
+0.05
 
 =head1 SYNOPSIS
 
@@ -69,6 +69,7 @@ use CGI::Auth::FOAF_SSL::OnlineAccount;
 use CGI::Auth::FOAF_SSL::Agent;
 use IPC::Open2;
 use LWP::UserAgent;
+use RDF::RDFa::Parser;
 use RDF::Redland;
 use 5.010000;
 use strict;
@@ -160,6 +161,7 @@ sub new_smiple
 {
 	my $class = shift;
 	my $cert  = shift;
+	my $opts  = shift;
 	my $rv    = {};
 	
 	# Only client certificate secured connections allowed.
@@ -188,21 +190,31 @@ sub new_smiple
 	while (<READ>)
 	{
 		$exponent_line = $_ if (/^                Exponent: /);
-		last if (/^            Netscape Cert Type:/);
+		if ($opts->{'check_netscape_cert_type'})
+		{
+			last if (/^            Netscape Cert Type:/);
+		}
+		else
+		{
+			last if (/^            X509v3 Subject Alternative Name:/);
+		}
 	}
-	my $usages = <READ>;
-	$usages =~ s/(^\s*|\s*\r?\n?$)//g;
-	while (<READ>)
-		{ last if (/^            X509v3 Subject Alternative Name:/); }
+	if ($opts->{'check_netscape_cert_type'})
+	{
+		my $usages = <READ>;
+		$usages =~ s/(^\s*|\s*\r?\n?$)//g;
+		while (<READ>)
+			{ last if (/^            X509v3 Subject Alternative Name:/); }
+
+		# Unless certificate is specifically allowed to be used for HTTPS, then
+		# reject it.
+		return unless $usages =~ /SSL Client/i;
+	}
 	my $alt_name = <READ>; 
 	$alt_name =~ s/(^\s*|\s*\r?\n?$)//g;
 	close READ;
 	close WRITE;
 
-	# Unless certificate is specifically allowed to be used for HTTPS, then
-	# reject it.
-	return unless $usages =~ /SSL Client/i;
-	
 	# Only allow FOAF+SSL certificates.
 	return unless $alt_name =~ /^URI:(.+)$/i;
 	$rv->{'cert_subject_uri'} = $1;
@@ -247,22 +259,8 @@ sub verify_certificate
 {
 	my $rv = shift;
 	return 0 unless defined $rv;
-
-	my $ua = LWP::UserAgent->new(agent=>$CGI::Auth::FOAF_SSL::ua_string); 
-	$ua->default_headers->push_header('Accept' => "application/rdf+xml, */*");
-	my $response = $ua->get($rv->{'cert_subject_uri'});
-	
-	return 0 unless length $response->content;
-	
-	my $account  = RDF::Redland::URI->new($rv->{'cert_subject_uri'});
-	my $storage  = RDF::Redland::Storage->new("hashes", "test", "new='yes',hash-type='memory'");
-	my $model    = RDF::Redland::Model->new($storage, "");	
-	my $parser   = RDF::Redland::Parser->new(undef, $response->header('content-type'));
-	
-	return 0 unless $parser;
-
-	$parser->parse_string_into_model($response->content, $account, $model);	
-	$rv->{'cert_subject_model'} = $model;
+		
+	$rv->{'cert_subject_model'} = $rv->_get_redland_model($rv->{'cert_subject_uri'});
 	
 	my $query_string = sprintf("SELECT ?decExponent ?hexModulus "
 	                          ."WHERE { "
@@ -273,13 +271,19 @@ sub verify_certificate
 	                          ."    ?exponent <http://www.w3.org/ns/auth/cert#decimal> ?decExponent . "
 	                          ."}",
 	                          $rv->{'cert_subject_uri'});
-	my $query   = RDF::Redland::Query->new($query_string, $account, undef, "sparql");
-	my $results = $model->query_execute($query);
+	my $query   = RDF::Redland::Query->new(
+		$query_string,
+		RDF::Redland::URI->new($rv->{'cert_subject_uri'}),
+		undef,
+		"sparql");
+	my $results = $rv->{'cert_subject_model'}->query_execute($query);
 	if (!$results->finished)
 	{
 		$rv->{'correct_cert_exponent_dec'} = $results->binding_value(0)->literal_value;
 		$rv->{'correct_cert_modulus_hex'}  = $results->binding_value(1)->literal_value;
 	}
+	
+	return 0 unless $rv->{'correct_cert_modulus_hex'} && $rv->{'correct_cert_exponent_dec'};
 
 	$rv->{'correct_cert_exponent_dec'} =~ s/[^0-9]//ig;
 	$rv->{'correct_cert_modulus_hex'}  =~ s/[^A-Z0-9]//ig;
@@ -451,33 +455,21 @@ sub load_personal_info
 
 		if (defined $retrievedAgentUri)
 		{
-			my $ua = LWP::UserAgent->new(agent=>$CGI::Auth::FOAF_SSL::ua_string); 
-			$ua->default_headers->push_header('Accept' => "application/rdf+xml, */*");
-			my $response = $ua->get($retrievedAgentUri);
+			my $model = $rv->_get_redland_model($retrievedAgentUri);
+			$rv->{'agent'} = CGI::Auth::FOAF_SSL::Agent->new($retrievedAgentUri, $model);
 			
-			if (length $response->content)
+			if ($model)
 			{
-				my $account  = RDF::Redland::URI->new($retrievedAgentUri);
-				my $storage  = RDF::Redland::Storage->new("hashes", "test", "new='yes',hash-type='memory'");
-				my $model    = RDF::Redland::Model->new($storage, "");	
-				my $parser   = RDF::Redland::Parser->new(undef, $response->header('content-type'));
-
-				if ($parser)
+				my $query = RDF::Redland::Query->new(
+					sprintf('ASK WHERE { <%s> <http://xmlns.com/foaf/0.1/holdsAccount> <%s> . }',
+						$retrievedAgentUri, $rv->{'cert_subject_uri'}),
+					RDF::Redland::URI->new($retrievedAgentUri),
+					undef,
+					'sparql');
+				my $results = $model->query_execute($query);
+				if ($results->get_boolean)
 				{
-					$parser->parse_string_into_model($response->content, RDF::Redland::URI->new($retrievedAgentUri), $model);
-					$rv->{'agent'} = CGI::Auth::FOAF_SSL::Agent->new($retrievedAgentUri, $model);
-					
-					my $query = RDF::Redland::Query->new(
-						sprintf('ASK WHERE { <%s> <http://xmlns.com/foaf/0.1/holdsAccount> <%s> . }',
-							$retrievedAgentUri, $rv->{'cert_subject_uri'}),
-						RDF::Redland::URI->new($retrievedAgentUri),
-						undef,
-						'sparql');
-					my $results = $model->query_execute($query);
-					if ($results->get_boolean)
-					{
-						$rv->{'validation'} = 'agent';
-					}
+					$rv->{'validation'} = 'agent';
 				}
 			}
 		}
@@ -549,6 +541,86 @@ sub certified_thing
 {
 	my $this = shift;
 	return $this->{'thing'};
+}
+
+=back
+
+=head1 INTERNAL METHODS
+
+=over 8
+
+=item $model = $auth->_get_redland_model($uri);
+
+Get an RDF::Redland::Model corresponding to a URI.
+
+=cut
+
+sub _get_redland_model
+{
+	my $this = shift;
+	my $uri  = shift;
+
+	my $ua = LWP::UserAgent->new(agent=>$CGI::Auth::FOAF_SSL::ua_string); 
+	$ua->default_headers->push_header('Accept' => "application/rdf+xml, application/xhtml+xml, text/html, */*");
+	my $response = $ua->get($uri);
+	return unless length $response->content;
+	
+	my $storage  = RDF::Redland::Storage->new("hashes", "test", "new='yes',hash-type='memory'");
+	my $model    = RDF::Redland::Model->new($storage, "");	
+	
+	# If response is (X)HTML, parse using RDF::RDFa::Parser instead of Redland.
+	if ($response->header('content-type')
+		=~ m#^(text/html|application/xhtml.xml|image/svg(.xml)?)#i)
+	{
+		my $parser = RDF::RDFa::Parser->new($response->content, $uri);
+		$parser->consume;
+		my $graph = $parser->graph;
+		
+		foreach my $subject (keys %$graph)
+		{
+			my $S = ($subject =~ /^_:(.+)$/) 
+			      ? RDF::Redland::BlankNode->new($1)
+			      : RDF::Redland::URINode->new($subject);
+		
+			foreach my $predicate (keys %{ $graph->{$subject} })
+			{
+				my $P = RDF::Redland::URINode->new($predicate);
+		
+				foreach my $object (@{ $graph->{$subject}->{$predicate} })
+				{
+					my $O;
+					
+					if ($object->{'type'} eq 'literal')
+					{
+						$O = RDF::Redland::LiteralNode->new(
+							$object->{'value'},
+							$object->{'datatype'},
+							$object->{'lang'});
+					}
+					else
+					{
+						$O = ($object->{'value'} =~ /^_:(.+)$/) 
+						      ? RDF::Redland::BlankNode->new($1)
+						      : RDF::Redland::URINode->new($object->{'value'});
+					}
+					
+					$model->add($S, $P, $O);
+				}
+			}
+		}
+		
+		return $model;
+	}
+	
+	my $URI      = RDF::Redland::URI->new($uri);
+	my $parser   = RDF::Redland::Parser->new(undef, $response->header('content-type'));
+	
+	$parser = RDF::Redland::Parser->new('rdfxml')
+		unless ($parser);
+
+	$parser->parse_string_into_model($response->content, $URI, $model);	
+	
+	return $model;
 }
 
 1;

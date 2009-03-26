@@ -10,6 +10,7 @@ WriteMakefile(
     	'CGI'          => 3,
     	'Carp'         => 1,
     	'IPC::Open2'   => 1,
+	'RDF::RDFa::Parser' => '0.11',
     }, 
     ($] >= 5.005 ?     ## Add these new keywords supported since 5.005
       (ABSTRACT_FROM  => 'lib/CGI/Auth/FOAF_SSL.pm', # retrieve abstract from module

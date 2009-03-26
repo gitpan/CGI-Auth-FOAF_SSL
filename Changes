@@ -15,3 +15,7 @@ Revision history for Perl extension CGI::Auth::FOAF_SSL.
 0.04  Sun Mar  1 22:18:00 2009
 	- Bug fix for foaf:Agents
 	- Security improvement for foaf:OnlineAccounts
+
+0.05  Thu Mar 26 1 15:36:39 2009
+	- No longer require Netscape-specific SSL extensions
+	- Support for RDFa using RDF::RDFa::Parser
