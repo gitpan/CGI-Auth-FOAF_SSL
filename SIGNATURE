@@ -1,0 +1,48 @@
+This file contains message digests of all files listed in MANIFEST,
+signed via the Module::Signature module, version 0.61.
+
+To verify the content in this distribution, first make sure you have
+Module::Signature installed, then type:
+
+    % cpansign -v
+
+It will check each file's integrity, as well as the signature's
+validity.  If "==> Signature verified OK! <==" is not displayed,
+the distribution may already have been compromised, and you should
+not run its Makefile.PL or Build.PL.
+
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+SHA1 fbc78fbd25b41a5824fe3d6fed8726e46971085b Changes
+SHA1 533ae5905988464a30901ca86014adc87e4ad478 MANIFEST
+SHA1 e61b656b62e795ef73170ec045ec7f126a064f28 MANIFEST.SKIP
+SHA1 56f25e8e65e4a7599cf5b45cb27c29deb55bb9bc META.yml
+SHA1 529ac482825c29e3c7ab99f4faf71f90ed3c0675 Makefile.PL
+SHA1 001bc8961d38a1c8abab55720cd60cf0bec07219 README
+SHA1 e5fb92ac217988bfc7a6af739b0459627020a27e inc/Module/AutoInstall.pm
+SHA1 fd5f3c4f0418efee3b9b16cf8c3902e8374909df inc/Module/Install.pm
+SHA1 5c529e96420d964b192f011b121283a4916f7331 inc/Module/Install/AutoInstall.pm
+SHA1 7cd7c349afdf3f012e475507b1017bdfa796bfbd inc/Module/Install/Base.pm
+SHA1 ba186541bbf6439111f01fc70769cf24d22869bf inc/Module/Install/Can.pm
+SHA1 a9d6306080cee9c32b18f6cbd3c7636ece67e81a inc/Module/Install/External.pm
+SHA1 aaa50eca0d7751db7a4d953fac9bc72c6294e238 inc/Module/Install/Fetch.pm
+SHA1 219da5a95c290312a81477b226f005997d97dcfd inc/Module/Install/Include.pm
+SHA1 3e83972921d54198d1246f7278f08664006cd65d inc/Module/Install/Makefile.pm
+SHA1 12bf1867955480d47d5171a9e9c6a96fabe0b58f inc/Module/Install/Metadata.pm
+SHA1 f7ee667e878bd2faf22ee9358a7b5a2cc8e91ba4 inc/Module/Install/Win32.pm
+SHA1 8ed29d6cf217e0977469575d788599cbfb53a5ca inc/Module/Install/WriteAll.pm
+SHA1 1e6399a0585817abef500c34fce676fb9b0545f0 inc/Test/Signature.pm
+SHA1 f20513811c755234c6ce2a4d8fc5cd8b978815a8 lib/CGI/Auth/FOAF_SSL.pm
+SHA1 8e9f937c1e5ae4f4be4d7eea9f19e70586acfd30 lib/CGI/Auth/FOAF_SSL/Agent.pm
+SHA1 c89c16c5f142351bb5807aea9cca0ff6c913275d lib/CGI/Auth/FOAF_SSL/CertifiedThing.pm
+SHA1 9ecd935bb9e8593c28d8d61bd41f68d36deabae9 lib/CGI/Auth/FOAF_SSL/OnlineAccount.pm
+SHA1 bb128dce2db8ad397dbeb957d79d084cc5d2391a t/00sig.t
+SHA1 a6c959f7a142ca1f4165dee5234b18597c76a360 t/CGI-Auth-FOAF_SSL.t
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iEYEARECAAYFAksmbf0ACgkQzr+BKGoqfTlScwCglEvj9/au9X/vrRDhHeflLf0n
++xEAnj7bVkLXTyHu8Ds7/KQCwDjtt2Xo
+=yG9N
+-----END PGP SIGNATURE-----

@@ -1,18 +1,35 @@
---- #YAML:1.0
-name:                CGI-Auth-FOAF_SSL
-version:             0.05
-abstract:            Authentication using FOAF+SSL.
-license:             ~
-author:              
-    - Toby Inkster <mail@tobyinkster.co.uk>
-generated_by:        ExtUtils::MakeMaker version 6.42
-distribution_type:   module
-requires:     
-    Carp:                          1
-    CGI:                           3
-    IPC::Open2:                    1
-    RDF::RDFa::Parser:             0.11
-    RDF::Redland:                  1
+---
+abstract: 'Authentication using FOAF+SSL.'
+author:
+  - 'Toby Inkster <tobyink@cpan.org>'
+build_requires:
+  ExtUtils::MakeMaker: 6.42
+  Test::More: 0.61
+configure_requires:
+  ExtUtils::MakeMaker: 6.42
+distribution_type: module
+generated_by: 'Module::Install version 0.91'
+license: perl
 meta-spec:
-    url:     http://module-build.sourceforge.net/META-spec-v1.3.html
-    version: 1.3
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
+name: CGI-Auth-FOAF_SSL
+no_index:
+  directory:
+    - inc
+    - t
+requires:
+  CGI: 0
+  CGI::Session: 0
+  Carp: 0
+  IPC::Open2: 0
+  LWP::UserAgent: 0
+  RDF::Query: 2.200
+  RDF::Query::Client: 0.03
+  RDF::RDFa::Parser: 0.21
+  RDF::Trine: 0.111
+  WWW::Finger: 0.01
+  perl: 5.8.1
+resources:
+  license: http://dev.perl.org/licenses/
+version: 0.50

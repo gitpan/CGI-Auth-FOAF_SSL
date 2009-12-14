@@ -1,31 +1,137 @@
-CGI-Auth-FOAF_SSL version 0.04
-==============================
+NAME
+    CGI::Auth::FOAF_SSL - Authentication using FOAF+SSL.
 
-INSTALLATION
+VERSION
+    0.50
 
-To install this module type the following:
+SYNOPSIS
+     use CGI qw(:all);
+     use CGI::Auth::FOAF_SSL;
+ 
+     my $cgi  = CGI->new;
+     my $auth = CGI::Auth::FOAF_SSL->new_from_cgi($cgi);
+ 
+     print header('-type' => 'text/html', '-cookie' => $auth->cookie);
+ 
+     if (defined $auth && $auth->is_secure)
+     {
+            if (defined $auth->agent)
+            {
+                    printf("<p>Hello <a href='%s'>%s</a>! You are logged on with FOAF+SSL.</p>\n",
+                            escapeHTML($auth->agent->homepage),
+                            escapeHTML($auth->agent->name));
+            }
+            else
+            {
+                    print "<p>Hello! You are logged on with FOAF+SSL.</p>\n";
+            }
+     }
+     else
+     {
+            print "<p>Greetings stranger. You are unknown in these parts.</p>\n";
+     }
 
-   perl Makefile.PL
-   make
-   make test
-   make install
+DESCRIPTION
+    FOAF+SSL is a simple authentication scheme described at
+    <http://esw.w3.org/topic/foaf+ssl>. This module provides FOAF+SSL
+    authentication for CGI scripts.
 
-DEPENDENCIES
+    This requires the web server to be using HTTPS and to be configured to
+    request client certificates and to pass the certificate details on as
+    environment variables for scripts. If you are using Apache, this means
+    that you want to set the following directives in your SSL virtual host
+    setup:
 
-This module requires these other modules and libraries:
+     SSLEngine on
+     # SSLCipherSuite (see Apache documentation)
+     # SSLProtocol (see Apache documentation)
+     # SSLCertificateFile (see Apache documentation)
+     # SSLCertificateKeyFile (see Apache documentation)
+     SSLVerifyClient optional_no_ca
+     SSLVerifyDepth  1
+     SSLOptions +StdEnvVars +ExportCertData
 
-  Carp
-  IPC::Open2
-  LWP::UserAgent
-  RDF::Redland
-  
-It also requires the OpenSSL executable to be available at /usr/bin/openssl.
+    As of version 0.50, this package no longer uses RDF::Redland, using
+    RDF::Trine and RDF::Query instead.
 
-COPYRIGHT AND LICENCE
+CONFIGURATION
+    $CGI::Auth::FOAF_SSL::path_openssl = '/usr/bin/openssl'
+            Set the path to the OpenSSL binary.
 
-Copyright (C) 2009 by Toby Inkster
+    $CGI::Auth::FOAF_SSL::ua_string = 'MyTool/1.0'
+            Set the User-Agent string for any HTTP requests.
 
-This library is free software; you can redistribute it and/or modify
-it under the same terms as Perl itself, either Perl version 5.10.0 or,
-at your option, any later version of Perl 5 you may have available.
+CONSTRUCTORS
+    $auth = CGI::Auth::FOAF_SSL->new($pem_encoded)
+            Performs FOAF+SSL authentication on a PEM-encoded key. If
+            authentication is completely unsuccessful, returns undef.
+            Otherwise, returns a CGI::Auth::FOAF_SSL object. Use "is_secure"
+            to check if authentication was *completely* successful.
+
+            You probably want to use "new_from_cgi" instead.
+
+    $auth = CGI::Auth::FOAF_SSL->new_from_cgi($cgi_object)
+            Performs FOAF+SSL authentication on a CGI object. This is a
+            wrapper around "new" which extracts the PEM-encoded client
+            certificate from the CGI request. It has the same return values as
+            "new".
+
+PUBLIC METHODS
+    $cookie = $auth->cookie
+            HTTP cookie related to the authentication process. Sending this to
+            the client isn't strictly necessary, but it allows for a session
+            to be established, greatly speeding up subsequent accesses.
+
+    $bool = $auth->is_secure
+            Returns true iff the authentication process was completely
+            successful.
+
+    $agent = $auth->agent
+            Returns an object which represents the agent making the request.
+            This object includes the following methods: "name", "homepage",
+            "mbox" and "img".
+
+            Another method included is "identity" which returns the RDF URI
+            representing the agent.
+
+    $account = $auth->account
+            Returns an object which represents the account making the request.
+            This object includes the following methods: "name", "homepage".
+
+            Another method included is "identity" which returns the RDF URI
+            representing the account.
+
+    $thing = $auth->certified_thing
+            Returns an object representing the thing which the certificate
+            belongs to. This object includes a method called "identity" which
+            returns its RDF URI.
+
+            Usually you will want to use "agent" or "account" instead.
+
+UTILITY METHOD
+    $model = $auth->get_trine_model($uri);
+            Get an RDF::Trine::Model corresponding to a URI.
+
+BUGS
+    Please report any bugs to <http://rt.cpan.org/>.
+
+SEE ALSO
+    <http://lists.foaf-project.org/mailman/listinfo/foaf-protocols>,
+    <http://esw.w3.org/topic/foaf+ssl>.
+
+    CGI, RDF::Trine.
+
+    <http://httpd.apache.org/docs/2.0/mod/mod_ssl.html>.
+
+    <http://www.perlrdf.org/>.
+
+AUTHOR
+    Toby Inkster, <tobyink@cpan.org>
+
+COPYRIGHT AND LICENSE
+    Copyright (C) 2009 by Toby Inkster
+
+    This library is free software; you can redistribute it and/or modify it
+    under the same terms as Perl itself, either Perl version 5.8.1 or, at your
+    option, any later version of Perl 5 you may have available.
 

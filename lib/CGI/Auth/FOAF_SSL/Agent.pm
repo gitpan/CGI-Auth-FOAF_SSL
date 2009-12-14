@@ -4,7 +4,7 @@ use CGI::Auth::FOAF_SSL::CertifiedThing;
 @ISA = qw(CGI::Auth::FOAF_SSL::CertifiedThing);
 
 BEGIN {
-	$CGI::Auth::FOAF_SSL::Agent::VERSION = '0.01';
+	$CGI::Auth::FOAF_SSL::Agent::VERSION = '0.50';
 }
 
 sub name
@@ -12,6 +12,7 @@ sub name
 	my $this = shift;
 	return $this->getter('name',
 		'http://xmlns.com/foaf/0.1/name',
+		'http://www.w3.org/2000/01/rdf-schema#label',
 		'http://xmlns.com/foaf/0.1/nick');
 }
 

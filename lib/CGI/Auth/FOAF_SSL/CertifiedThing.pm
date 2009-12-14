@@ -1,7 +1,11 @@
 package CGI::Auth::FOAF_SSL::CertifiedThing;
 
+use RDF::Query;
+use RDF::Query::Client;
+use RDF::Trine;
+
 BEGIN {
-	$CGI::Auth::FOAF_SSL::CertifiedThing::VERSION = '0.01';
+	$CGI::Auth::FOAF_SSL::CertifiedThing::VERSION = '0.50';
 }
 
 sub new
@@ -9,8 +13,9 @@ sub new
 	my $class = shift;
 	my $this  = {};
 
-	$this->{'identity'} = shift;
-	$this->{'model'}    = shift;
+	$this->{'identity'}    = shift;
+	$this->{'model'}       = shift;
+	$this->{'endpoint'}    = shift;
 
 	bless $this, $class;
 }
@@ -27,6 +32,12 @@ sub model
 	return $this->{'model'};
 }
 
+sub endpoint
+{
+	my $this = shift;
+	return $this->{'endpoint'};
+}
+
 sub getter
 {
 	my $this  = shift;
@@ -35,22 +46,33 @@ sub getter
 	
 	PREDICATE: foreach my $p (@preds)
 	{
-		last PREDICATE if defined $this->{ $key };
+		last PREDICATE
+			if defined $this->{ $key };
 		
-		my $query_string = sprintf("SELECT ?x WHERE { <%s> <%s> ?x . }", $this->identity, $p);
-		my $query = RDF::Redland::Query->new($query_string,
-			RDF::Redland::URI->new($this->identity),
-			undef,
-			"sparql");
-			
-		my $results = $this->model->query_execute($query);
-		RESULT: while (!($results->finished || defined $this->{ $key }))
+		my $query_string = sprintf("SELECT ?x WHERE { <%s> <%s> ?x . } ORDER BY ?x", $this->identity, $p);
+		my $results;
+		
+		if (defined $this->model)
 		{
-			my $node = $results->binding_value(0);
+			my $query = RDF::Query->new($query_string);
+			$results  = $query->execute($this->model);
+		}
+		elsif (defined $this->endpoint)
+		{
+			my $query = RDF::Query::Client->new($query_string);
+			$results  = $query->execute($this->endpoint, {QueryMethod=>'POST'});
+		}
 		
-			if ($node->type == $RDF::Redland::Node::Type_Resource)
-				{ $this->{ $key } = $node->uri->as_string; }
-			elsif ($node->type == $RDF::Redland::Node::Type_Literal)
+		RESULT: while (my $row = $results->next)
+		{
+			last RESULT
+				if defined $this->{ $key };
+			
+			my $node = $row->{'x'};
+		
+			if (defined $node and $node->is_resource)
+				{ $this->{ $key } = $node->uri; }
+			elsif (defined $node and $node->is_literal)
 				{ $this->{ $key } = $node->literal_value; }
 		}
 	}

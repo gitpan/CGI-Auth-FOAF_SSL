@@ -19,3 +19,10 @@ Revision history for Perl extension CGI::Auth::FOAF_SSL.
 0.05  Thu Mar 26 1 15:36:39 2009
 	- No longer require Netscape-specific SSL extensions
 	- Support for RDFa using RDF::RDFa::Parser
+
+0.50
+	- Switch from RDF::Redland to RDF::Trine.
+	- Support Fingerpoint as fallback for URIless certificates.
+	- Support multiple URIs in subjectAltName.
+	- Optional session caching to speed up operation.
+	- Use Module::Install system for installation.
