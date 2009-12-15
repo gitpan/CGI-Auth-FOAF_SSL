@@ -27,9 +27,11 @@ requires:
   RDF::Query: 2.200
   RDF::Query::Client: 0.03
   RDF::RDFa::Parser: 0.21
-  RDF::Trine: 0.111
-  WWW::Finger: 0.01
+  RDF::Trine: 0.112
+  WWW::Finger: 0.03
   perl: 5.8.1
 resources:
+  bugtracker: http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/
+  homepage: http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/
   license: http://dev.perl.org/licenses/
-version: 0.50
+version: 0.51

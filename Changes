@@ -26,3 +26,7 @@ Revision history for Perl extension CGI::Auth::FOAF_SSL.
 	- Support multiple URIs in subjectAltName.
 	- Optional session caching to speed up operation.
 	- Use Module::Install system for installation.
+
+0.51
+	- Use WWW::Finger instead of WWW::Finger::Fingerpoint.
+	- Fix package signature.

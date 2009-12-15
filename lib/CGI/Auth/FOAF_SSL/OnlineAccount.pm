@@ -4,7 +4,7 @@ use CGI::Auth::FOAF_SSL::CertifiedThing;
 @ISA = qw(CGI::Auth::FOAF_SSL::CertifiedThing);
 
 BEGIN {
-	$CGI::Auth::FOAF_SSL::OnlineAccount::VERSION = '0.50';
+	$CGI::Auth::FOAF_SSL::OnlineAccount::VERSION = '0.51';
 }
 
 sub name

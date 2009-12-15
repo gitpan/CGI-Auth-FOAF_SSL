@@ -5,7 +5,7 @@ use strict;
 use warnings;
 
 BEGIN {
-	$CGI::Auth::FOAF_SSL::VERSION = '0.50';
+	$CGI::Auth::FOAF_SSL::VERSION = '0.51';
 }
 
 =head1 NAME
@@ -14,7 +14,7 @@ CGI::Auth::FOAF_SSL - Authentication using FOAF+SSL.
 
 =head1 VERSION
 
-0.50
+0.51
 
 =head1 SYNOPSIS
 
@@ -80,9 +80,9 @@ use LWP::UserAgent;
 use RDF::RDFa::Parser 0.21;
 use RDF::Query;
 use RDF::Query::Client;
-use RDF::Trine 0.111;
+use RDF::Trine 0.112;
 use RDF::Trine::Serializer::NTriples;
-use WWW::Finger::Fingerpoint;
+use WWW::Finger 0.03;
 
 =head1 CONFIGURATION
 
@@ -318,7 +318,7 @@ sub verify_certificate_by_email
 	my $rv    = shift;
 	my $email = shift;
 	
-	my $fp = WWW::Finger::Fingerpoint->new($email);
+	my $fp = WWW::Finger->new($email);
 	
 	return 0
 		unless defined $fp->endpoint and defined $fp->webid;
@@ -689,9 +689,14 @@ sub get_trine_model
 	else
 	{
 			$model      = RDF::Trine::Model->new( RDF::Trine::Store->temporary_store );
-			my $parser  = ($response->header('content-type') =~ /(n3|turtle|text.plain)/i)
-							? RDF::Trine::Parser::Turtle->new
-							: RDF::Trine::Parser::RDFXML->new;
+			
+			my $parser;
+			$parser  = RDF::Trine::Parser::Turtle->new
+				if $response->header('content-type') =~ /(n3|turtle|text.plain)/i;
+			$parser  = RDF::Trine::Parser::RDFJSON->new
+				if $response->header('content-type') =~ /(json)/i && !defined $parser;
+			$parser  = RDF::Trine::Parser::RDFXML->new
+				unless defined $parser;
 			$parser->parse_into_model( $uri , $response->decoded_content , $model );
 	}
 	

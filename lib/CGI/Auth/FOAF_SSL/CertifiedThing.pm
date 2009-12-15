@@ -5,7 +5,7 @@ use RDF::Query::Client;
 use RDF::Trine;
 
 BEGIN {
-	$CGI::Auth::FOAF_SSL::CertifiedThing::VERSION = '0.50';
+	$CGI::Auth::FOAF_SSL::CertifiedThing::VERSION = '0.51';
 }
 
 sub new

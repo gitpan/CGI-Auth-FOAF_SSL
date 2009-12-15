@@ -2,7 +2,7 @@ NAME
     CGI::Auth::FOAF_SSL - Authentication using FOAF+SSL.
 
 VERSION
-    0.50
+    0.51
 
 SYNOPSIS
      use CGI qw(:all);
@@ -73,14 +73,15 @@ CONSTRUCTORS
     $auth = CGI::Auth::FOAF_SSL->new_from_cgi($cgi_object)
             Performs FOAF+SSL authentication on a CGI object. This is a
             wrapper around "new" which extracts the PEM-encoded client
-            certificate from the CGI request. It has the same return values as
-            "new".
+            certificate from the CGI request. It has the same return values
+            as "new".
 
 PUBLIC METHODS
     $cookie = $auth->cookie
-            HTTP cookie related to the authentication process. Sending this to
-            the client isn't strictly necessary, but it allows for a session
-            to be established, greatly speeding up subsequent accesses.
+            HTTP cookie related to the authentication process. Sending this
+            to the client isn't strictly necessary, but it allows for a
+            session to be established, greatly speeding up subsequent
+            accesses.
 
     $bool = $auth->is_secure
             Returns true iff the authentication process was completely
@@ -95,16 +96,17 @@ PUBLIC METHODS
             representing the agent.
 
     $account = $auth->account
-            Returns an object which represents the account making the request.
-            This object includes the following methods: "name", "homepage".
+            Returns an object which represents the account making the
+            request. This object includes the following methods: "name",
+            "homepage".
 
             Another method included is "identity" which returns the RDF URI
             representing the account.
 
     $thing = $auth->certified_thing
             Returns an object representing the thing which the certificate
-            belongs to. This object includes a method called "identity" which
-            returns its RDF URI.
+            belongs to. This object includes a method called "identity"
+            which returns its RDF URI.
 
             Usually you will want to use "agent" or "account" instead.
 
@@ -132,6 +134,6 @@ COPYRIGHT AND LICENSE
     Copyright (C) 2009 by Toby Inkster
 
     This library is free software; you can redistribute it and/or modify it
-    under the same terms as Perl itself, either Perl version 5.8.1 or, at your
-    option, any later version of Perl 5 you may have available.
+    under the same terms as Perl itself, either Perl version 5.8.1 or, at
+    your option, any later version of Perl 5 you may have available.
 
