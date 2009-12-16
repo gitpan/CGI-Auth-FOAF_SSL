@@ -2,7 +2,7 @@ NAME
     CGI::Auth::FOAF_SSL - Authentication using FOAF+SSL.
 
 VERSION
-    0.51
+    0.52
 
 SYNOPSIS
      use CGI qw(:all);

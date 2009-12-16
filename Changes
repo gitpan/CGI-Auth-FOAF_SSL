@@ -30,3 +30,7 @@ Revision history for Perl extension CGI::Auth::FOAF_SSL.
 0.51
 	- Use WWW::Finger instead of WWW::Finger::Fingerpoint.
 	- Fix package signature.
+
+0.52
+	- Support for new foaf:account property.
+	- Correct for mismatched X.509 cert modulus hex string lengths.

@@ -5,7 +5,7 @@ use strict;
 use warnings;
 
 BEGIN {
-	$CGI::Auth::FOAF_SSL::VERSION = '0.51';
+	$CGI::Auth::FOAF_SSL::VERSION = '0.52';
 }
 
 =head1 NAME
@@ -14,7 +14,7 @@ CGI::Auth::FOAF_SSL - Authentication using FOAF+SSL.
 
 =head1 VERSION
 
-0.51
+0.52
 
 =head1 SYNOPSIS
 
@@ -293,9 +293,15 @@ sub verify_certificate_by_uri
 	return 0
 		unless $rv->{'correct_cert_modulus_hex'} && $rv->{'correct_cert_exponent_dec'};
 
-	$rv->{'correct_cert_exponent_dec'} =~ s/[^0-9]//ig;
+	$rv->{'correct_cert_exponent_dec'} =~ s/[^0-9-]//ig;
 	$rv->{'correct_cert_modulus_hex'}  =~ s/[^A-Z0-9]//ig;
 	$rv->{'correct_cert_modulus_hex'}  = uc($rv->{'correct_cert_modulus_hex'});
+
+	while (length $rv->{'correct_cert_modulus_hex'} < length $rv->{'cert_modulus_hex'})
+		{ $rv->{'correct_cert_modulus_hex'} = '0' . $rv->{'correct_cert_modulus_hex'}; }
+
+	while (length $rv->{'correct_cert_modulus_hex'} > length $rv->{'cert_modulus_hex'})
+		{ $rv->{'cert_modulus_hex'} = '0' . $rv->{'cert_modulus_hex'}; }
 
 	if (($rv->{'correct_cert_modulus_hex'} eq $rv->{'cert_modulus_hex'})
 	&&  ($rv->{'correct_cert_exponent_dec'} == $rv->{'cert_exponent_dec'}))
@@ -441,6 +447,7 @@ sub load_personal_info
 	#
 	# Might be able to figure it out from existence of certain predicates:
 	#      - foaf:holdsAccount
+	#      - foaf:account
 	#      - foaf:accountServiceHomepage
 	#      - foaf:accountName
 	#      - http://rdfs.org/sioc/ns#account_of
@@ -451,22 +458,13 @@ sub load_personal_info
 	||  $rv->{'cert_subject_type'} eq 'OnlineAccount')
 	{
 		my $results = $rv->_exec_query(
-			sprintf('SELECT ?person WHERE { <%s> <http://rdfs.org/sioc/ns#account_of> ?person . }', $rv->{'cert_subject_uri'}),
-			$rv->{'cert_subject_uri'});
-			
-		if (my $row = $results->next)
-		{
-			$rv->{'cert_subject_type'} = 'OnlineAccount';
-			$retrievedAgentUri = $row->{'person'}->uri
-				unless defined $retrievedAgentUri;
-		}
-	}
-
-	if (!defined $rv->{'cert_subject_type'}
-	||  $rv->{'cert_subject_type'} eq 'OnlineAccount')
-	{
-		my $results = $rv->_exec_query(
-			sprintf('SELECT ?person WHERE { ?person <http://xmlns.com/foaf/0.1/holdsAccount> <%s> . }', $rv->{'cert_subject_uri'}),
+			sprintf('SELECT ?person
+				WHERE {
+					{ <%s> <http://rdfs.org/sioc/ns#account_of> ?person . }
+					UNION { ?person <http://xmlns.com/foaf/0.1/holdsAccount> <%s> . }
+					UNION { ?person <http://xmlns.com/foaf/0.1/account> <%s> . }
+				}',
+				$rv->{'cert_subject_uri'}, $rv->{'cert_subject_uri'}, $rv->{'cert_subject_uri'}),
 			$rv->{'cert_subject_uri'});
 			
 		if (my $row = $results->next)
@@ -480,19 +478,14 @@ sub load_personal_info
 	unless (defined $rv->{'cert_subject_type'})
 	{
 		my $results = $rv->_exec_query(
-			sprintf('ASK WHERE { <%s> <http://xmlns.com/foaf/0.1/accountName> ?o . }', $rv->{'cert_subject_uri'}),
+			sprintf('ASK
+				WHERE {
+					{ <%s> <http://xmlns.com/foaf/0.1/accountName> ?o . }
+					UNION { <%s> <http://xmlns.com/foaf/0.1/accountServiceHomepage> ?o . }
+				}',
+				$rv->{'cert_subject_uri'}, $rv->{'cert_subject_uri'}),
 			$rv->{'cert_subject_uri'});
 		
-		if ($results->is_boolean && $results->get_boolean)
-			{ $rv->{'cert_subject_type'} = 'OnlineAccount'; }
-	}
-
-	unless (defined $rv->{'cert_subject_type'})
-	{
-		my $results = $rv->_exec_query(
-			sprintf('ASK WHERE { <%s> <http://xmlns.com/foaf/0.1/accountServiceHomepage> ?o . }', $rv->{'cert_subject_uri'}),
-			$rv->{'cert_subject_uri'});
-
 		if ($results->is_boolean && $results->get_boolean)
 			{ $rv->{'cert_subject_type'} = 'OnlineAccount'; }
 	}
@@ -529,7 +522,14 @@ sub load_personal_info
 			if ($model)
 			{
 				my $query = RDF::Query->new(
-					sprintf('ASK WHERE { <%s> <http://xmlns.com/foaf/0.1/holdsAccount> <%s> . }',
+					sprintf('ASK
+						WHERE {
+							{ <%s> <http://rdfs.org/sioc/ns#account_of> <%s> . }
+							UNION { <%s> <http://xmlns.com/foaf/0.1/holdsAccount> <%s> . }
+							UNION { <%s> <http://xmlns.com/foaf/0.1/account> <%s> . }
+						}',
+						$rv->{'cert_subject_uri'}, $retrievedAgentUri,
+						$retrievedAgentUri, $rv->{'cert_subject_uri'},
 						$retrievedAgentUri, $rv->{'cert_subject_uri'}),
 					$retrievedAgentUri);
 				my $results = $query->execute($model);

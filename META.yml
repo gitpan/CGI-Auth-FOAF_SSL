@@ -34,4 +34,4 @@ resources:
   bugtracker: http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/
   homepage: http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/
   license: http://dev.perl.org/licenses/
-version: 0.51
+version: 0.52
