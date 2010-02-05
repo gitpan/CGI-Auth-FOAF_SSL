@@ -1,0 +1,175 @@
+#############################################################
+
+@prefix :        <http://usefulinc.com/ns/doap#> .
+@prefix dcs:     <http://ontologi.es/doap-changeset#> .
+@prefix dc:      <http://purl.org/dc/terms/> .
+@prefix foaf:    <http://xmlns.com/foaf/0.1/> .
+@prefix my:      <http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix toby:    <http://tobyinkster.co.uk/#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+
+#############################################################
+
+<>
+
+	dc:title         "Changes" ;
+	dc:description   "Revision history for Perl extension CGI::Auth::FOAF_SSL."@en ;
+	dc:subject       my:project ;
+	dc:creator       toby:i .
+
+#############################################################
+
+my:v_0_01
+
+	a               :Version ;
+	dc:issued       "2009-02-05"^^xsd:date ;
+	:revision       "0.01"^^xsd:string ;
+	:file-release   <http://backpan.perl.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.01.tar.gz> ;
+	rdfs:label      "First release"@en .
+
+my:v_0_02
+
+	a               :Version ;
+	dc:issued       "2009-02-19"^^xsd:date ;
+	:revision       "0.02"^^xsd:string ;
+	:file-release   <http://backpan.perl.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.02.tar.gz> ;
+	dcs:changeset [
+		dcs:versus my:v_0_01 ;
+		dc:item
+			[ rdfs:label "Changed API."@en ] ,
+			[ rdfs:label "Allow subjectAltName to point to a foaf:OnlineAccount."@en ; a dcs:Addition ]
+		] .
+
+my:v_0_03
+
+	a               :Version ;
+	dc:issued       "2009-03-01"^^xsd:date ;
+	:revision       "0.03"^^xsd:string ;
+	:file-release   <http://backpan.perl.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.03.tar.gz> ;
+	dcs:changeset [
+		dcs:versus my:v_0_02 ;
+		dc:item
+			[ rdfs:label "Fixed some bugs with new_from_cgi."@en ; a dcs:Bugfix ] ,
+			[ rdfs:label "Documentation improvements."@en ]
+		] .
+
+my:v_0_04
+
+	a               :Version ;
+	dc:issued       "2009-03-01"^^xsd:date ;
+	:revision       "0.04"^^xsd:string ;
+	:file-release   <http://backpan.perl.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.04.tar.gz> ;
+	dcs:changeset [
+		dcs:versus my:v_0_03 ;
+		dc:item
+			[ rdfs:label "foaf:Agent-related fix."@en ; a dcs:Bugfix ] ,
+			[ rdfs:label "foaf:OnlineAccount-related security fix."@en ; a dcs:Bugfix ]
+		] .
+
+my:v_0_05
+
+	a               :Version ;
+	dc:issued       "2009-03-26"^^xsd:date ;
+	:revision       "0.05"^^xsd:string ;
+	:file-release   <http://backpan.perl.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.05.tar.gz> ;
+	dcs:changeset [
+		dcs:versus my:v_0_05 ;
+		dc:item
+			[ rdfs:label "No longer require certs to include Netscape extensions."@en ] ,
+			[ rdfs:label "Support for consuming RDFa."@en ; a dcs:Addition ]
+		] .
+
+my:v_0_50
+
+	a               :Version ;
+	dc:issued       "2009-12-14"^^xsd:date ;
+	:revision       "0.50"^^xsd:string ;
+	:file-release   <http://backpan.perl.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.50.tar.gz> ;
+	rdfs:label      "Trine Edition"@en ;
+	dcs:changeset [
+		dcs:versus my:v_0_05 ;
+		dc:item
+			[ rdfs:label "Switch from RDF::Redland to RDF::Trine."@en ] ,
+			[ rdfs:label "Support Fingerpoint as fallback for URIless certificates."@en ; a dcs:Addition ] ,
+			[ rdfs:label "Support multiple URIs in subjectAltName."@en ; a dcs:Addition ] ,
+			[ rdfs:label "Session caching with cookies for speedup."@en ; a dcs:Addition ] ,
+			[ rdfs:label "New build system using Module::Install."@en ; a dcs:Update ] 
+		] .
+
+my:v_0_51
+
+	a               :Version ;
+	dc:issued       "2009-12-15"^^xsd:date ;
+	:revision       "0.51"^^xsd:string ;
+	:file-release   <http://backpan.perl.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.51.tar.gz> ;
+	dcs:changeset [
+		dcs:versus my:v_0_50 ;
+		dc:item
+			[ rdfs:label "Use WWW::Finger instead of its subclass WWW::Finger::Fingerpoint."@en ] ,
+			[ rdfs:label "Fix package signature."@en ] 
+		] .
+
+my:v_0_52
+
+	a               :Version ;
+	dc:issued       "2009-12-16"^^xsd:date ;
+	:revision       "0.52"^^xsd:string ;
+	:file-release   <http://backpan.perl.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.52.tar.gz> ;
+	dcs:changeset [
+		dcs:versus my:v_0_51 ;
+		dc:item
+			[ rdfs:label "Support new foaf:account property."@en ; a dcs:Update ] ,
+			[ rdfs:label "Correct for mismatched hex string lengths by adding leading zeros to shorter string."@en ; a dcs:Bugfix ] 
+		] .
+	
+my:v_1_00_00
+
+	a               :Version ;
+	dc:issued       "2010-02-05"^^xsd:date ;
+	:revision       "0.52"^^xsd:string ;
+	:file-release   <http://backpan.perl.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-1.00_00.tar.gz> ;
+	dcs:changeset [
+		dcs:versus my:v_0_52 ;
+		dc:item
+			[ rdfs:label "use RDF::TrineShortcuts"@en ; a dcs:Update ] ,
+			[ rdfs:label "Much better documentation."@en ] ,
+			[ rdfs:label "Use my swanky DOAP-powered build system."@en ; a dcs:Update ] ,
+			[ rdfs:label "service_homepage method for CGI::Auth::FOAF_SSL::OnlineAccount objects." ; a dcs:Addition ] , 
+			[ rdfs:label "Allow new_from_cgi to be called with no arguments."@en ]
+		] .
+
+
+#############################################################
+
+my:project
+
+	a               :Project ;
+	:name           "CGI-Auth-FOAF_SSL" ;
+	:shortdesc      "authentication using FOAF+SSL"@en ;
+	:programming-language  "Perl" ;
+	:homepage       <http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/> ;
+	:download-page  <http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/> ;
+	:bug-database   <http://rt.cpan.org/Dist/Display.html?Queue=CGI-Auth-FOAF_SSL> ;
+	:repository     [ a :SVNRepository ; :browse <http://goddamn.co.uk/viewvc/perlmods/CGI-Auth-FOAF_SSL/> ] ;
+	:maintainer     toby:i ;
+	:developer      toby:i ;
+	:documenter     toby:i ;
+	:tester         toby:i ;
+	:created        "2009-02-05"^^xsd:date ;
+	:license        <http://dev.perl.org/licenses/> ;
+	:release        my:v_0_01 , my:v_0_02 , my:v_0_03 , my:v_0_04 , my:v_0_05 ,
+	                my:v_0_50 , my:v_0_51 , my:v_0_52 ,
+	                my:v_1_00_00 .
+
+#############################################################
+
+toby:i
+
+	a               foaf:Person ;
+	foaf:name       "Toby Inkster" ;
+	foaf:homepage   <http://tobyinkster.co.uk/> ;
+	foaf:page       <http://search.cpan.org/~tobyink/> ;
+	.
+
+#############################################################

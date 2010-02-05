@@ -1,4 +1,6 @@
 Changes
+Changes.ttl
+Changes.xml
 Makefile.PL
 MANIFEST
 MANIFEST.SKIP
@@ -7,7 +9,7 @@ META.yml
 SIGNATURE
 
 t/00sig.t
-t/CGI-Auth-FOAF_SSL.t
+t/01basic.t
 
 lib/CGI/Auth/FOAF_SSL.pm
 lib/CGI/Auth/FOAF_SSL/Agent.pm
@@ -17,11 +19,10 @@ lib/CGI/Auth/FOAF_SSL/OnlineAccount.pm
 inc/Module/AutoInstall.pm
 inc/Module/Install/AutoInstall.pm
 inc/Module/Install/Base.pm
-inc/Module/Install/Bugtracker.pm
 inc/Module/Install/Can.pm
+inc/Module/Install/DOAPChangeSets.pm
 inc/Module/Install/External.pm
 inc/Module/Install/Fetch.pm
-inc/Module/Install/Homepage.pm
 inc/Module/Install/Include.pm
 inc/Module/Install/Makefile.pm
 inc/Module/Install/Metadata.pm
@@ -30,3 +31,4 @@ inc/Module/Install/ReadmeFromPod.pm
 inc/Module/Install/Win32.pm
 inc/Module/Install/WriteAll.pm
 inc/Test/Signature.pm
+

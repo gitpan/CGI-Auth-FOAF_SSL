@@ -1,40 +1,39 @@
 NAME
-    CGI::Auth::FOAF_SSL - Authentication using FOAF+SSL.
+    CGI::Auth::FOAF_SSL - authentication using FOAF+SSL
 
 VERSION
-    0.52
+    1.00_00
 
 SYNOPSIS
-     use CGI qw(:all);
-     use CGI::Auth::FOAF_SSL;
- 
-     my $cgi  = CGI->new;
-     my $auth = CGI::Auth::FOAF_SSL->new_from_cgi($cgi);
- 
-     print header('-type' => 'text/html', '-cookie' => $auth->cookie);
- 
-     if (defined $auth && $auth->is_secure)
-     {
-            if (defined $auth->agent)
-            {
-                    printf("<p>Hello <a href='%s'>%s</a>! You are logged on with FOAF+SSL.</p>\n",
-                            escapeHTML($auth->agent->homepage),
-                            escapeHTML($auth->agent->name));
-            }
-            else
-            {
-                    print "<p>Hello! You are logged on with FOAF+SSL.</p>\n";
-            }
-     }
-     else
-     {
-            print "<p>Greetings stranger. You are unknown in these parts.</p>\n";
-     }
+      use CGI qw(:all);
+      use CGI::Auth::FOAF_SSL;
+  
+      my $auth = CGI::Auth::FOAF_SSL->new_from_cgi( CGI->new );
+  
+      print header('-type' => 'text/html', '-cookie' => $auth->cookie);
+  
+      if (defined $auth && $auth->is_secure)
+      {
+        if (defined $auth->agent)
+        {
+          printf("<p>Hello <a href='%s'>%s</a>!</p>\n",
+                 escapeHTML($auth->agent->homepage),
+                 escapeHTML($auth->agent->name));
+        }
+        else
+        {
+          print "<p>Hello!</p>\n";
+        }
+      }
+      else
+      {
+        print "<p>Greetings stranger!</p>\n";
+      }
 
 DESCRIPTION
     FOAF+SSL is a simple authentication scheme described at
     <http://esw.w3.org/topic/foaf+ssl>. This module provides FOAF+SSL
-    authentication for CGI scripts.
+    authentication for CGI scripts written in Perl.
 
     This requires the web server to be using HTTPS and to be configured to
     request client certificates and to pass the certificate details on as
@@ -51,73 +50,152 @@ DESCRIPTION
      SSLVerifyDepth  1
      SSLOptions +StdEnvVars +ExportCertData
 
-    As of version 0.50, this package no longer uses RDF::Redland, using
-    RDF::Trine and RDF::Query instead.
+  Configuration
+    "$CGI::Auth::FOAF_SSL::path_openssl = '/usr/bin/openssl'"
+        Set the path to the OpenSSL binary.
 
-CONFIGURATION
-    $CGI::Auth::FOAF_SSL::path_openssl = '/usr/bin/openssl'
-            Set the path to the OpenSSL binary.
+    "$CGI::Auth::FOAF_SSL::ua_string = 'MyTool/1.0'"
+        Set the User-Agent string for any HTTP requests.
 
-    $CGI::Auth::FOAF_SSL::ua_string = 'MyTool/1.0'
-            Set the User-Agent string for any HTTP requests.
+  Constructors
+    "$auth = CGI::Auth::FOAF_SSL->new($pem_encoded)"
+        Performs FOAF+SSL authentication on a PEM-encoded key. If
+        authentication is completely unsuccessful, returns undef. Otherwise,
+        returns a CGI::Auth::FOAF_SSL object. Use "is_secure" to check if
+        authentication was *completely* successful.
 
-CONSTRUCTORS
-    $auth = CGI::Auth::FOAF_SSL->new($pem_encoded)
-            Performs FOAF+SSL authentication on a PEM-encoded key. If
-            authentication is completely unsuccessful, returns undef.
-            Otherwise, returns a CGI::Auth::FOAF_SSL object. Use "is_secure"
-            to check if authentication was *completely* successful.
+        You probably want to use "new_from_cgi" instead.
 
-            You probably want to use "new_from_cgi" instead.
+    "$auth = CGI::Auth::FOAF_SSL->new_from_cgi($cgi_object)"
+        Performs FOAF+SSL authentication on a CGI object. This is a wrapper
+        around "new" which extracts the PEM-encoded client certificate from
+        the CGI request. It has the same return values as "new".
 
-    $auth = CGI::Auth::FOAF_SSL->new_from_cgi($cgi_object)
-            Performs FOAF+SSL authentication on a CGI object. This is a
-            wrapper around "new" which extracts the PEM-encoded client
-            certificate from the CGI request. It has the same return values
-            as "new".
+        If $cgi_object is omitted, uses "CGI->new" instead.
 
-PUBLIC METHODS
-    $cookie = $auth->cookie
-            HTTP cookie related to the authentication process. Sending this
-            to the client isn't strictly necessary, but it allows for a
-            session to be established, greatly speeding up subsequent
-            accesses.
+  Public Methods
+    "$bool = $auth->is_secure"
+        Returns true iff the authentication process was completely
+        successful.
 
-    $bool = $auth->is_secure
-            Returns true iff the authentication process was completely
-            successful.
+        What does it mean for the authentication process to have been
+        partially successful? There are two such situations:
 
-    $agent = $auth->agent
-            Returns an object which represents the agent making the request.
-            This object includes the following methods: "name", "homepage",
-            "mbox" and "img".
+        *   The rdf:type of the URI given in subjectAltName could not be
+            established.
 
-            Another method included is "identity" which returns the RDF URI
-            representing the agent.
+            Perhaps no RDF could be found which provides an rdf:type for the
+            URI, or if an rdf:type is found, it is one that this module does
+            not recognise.
 
-    $account = $auth->account
-            Returns an object which represents the account making the
-            request. This object includes the following methods: "name",
-            "homepage".
+        *   The subjectAltName URI is established to be a
+            foaf:OnlineAccount, but no account holder is confirmed.
 
-            Another method included is "identity" which returns the RDF URI
-            representing the account.
+            To confirm that the account in question belongs to someone, the
+            RDF data associated with the account must provide the URI of an
+            account holder. Whatsmore the RDF data associated with the
+            account holder's URI must confirm that the account really does
+            belong to them.
 
-    $thing = $auth->certified_thing
-            Returns an object representing the thing which the certificate
-            belongs to. This object includes a method called "identity"
-            which returns its RDF URI.
+            This means that when dereferencing the subjectAltName and
+            finding that it identifies an account *?account*, the data must
+            provide the following triples:
 
-            Usually you will want to use "agent" or "account" instead.
+              ?webid foaf:account ?account .
+              ?account a foaf:OnlineAccount .
 
-UTILITY METHOD
-    $model = $auth->get_trine_model($uri);
-            Get an RDF::Trine::Model corresponding to a URI.
+            And when *?webid* is dereferenced, it must also provide this
+            triple:
+
+              ?webid foaf:account ?account .
+
+        In either of these two situations, it is probably not safe to trust
+        any data you get back from the "agent", "account" or
+        "certified_thing" methods (except perhaps
+        "$auth->certified_thing->identity").
+
+    "$agent = $auth->agent"
+        Returns a CGI::Auth::FOAF_SSL::Agent object which represents the
+        agent making the request. Occasionally undef.
+
+    "$account = $auth->account"
+        Returns a CGI::Auth::FOAF_SSL::OnlineAccount object which represents
+        the online account of the agent making the request. Usually undef.
+
+    "$thing = $auth->certified_thing"
+        Returns a CGI::Auth::FOAF_SSL::CertifiedThing object (or a
+        descendent class) which represents the thing given in the
+        certificate's subjectAltName.
+
+        Usually you will want to use "agent" or "account" instead.
+
+    "$cookie = $auth->cookie"
+        HTTP cookie related to the authentication process. Sending this to
+        the client isn't strictly necessary, but it allows for a session to
+        be established, greatly speeding up subsequent accesses. See also
+        the COOKIES section of this documentation.
+
+  Utility Method
+    "$model = $auth->get_trine_model($uri)"
+        Get an RDF::Trine::Model corresponding to a URI.
+
+COOKIES
+    FOAF+SSL is entirely RESTful: there is no state kept between requests.
+    This really simplifies authentication for both parties (client and
+    server) for one-off requests. However, because FOAF+SSL requires the
+    server to make various HTTP requests to authenticate the client, each
+    request is slowed down significantly.
+
+    Cookies provide us with a way of speeding this up. Use of cookies is
+    entirely optional, but greatly increases the speed of authentication for
+    the second and subsequent requests a client makes. If your
+    FOAF+SSL-secured service generally requires clients to make multiple
+    requests in a short period, you should seriously consider using cookies
+    to speed this up.
+
+    The method works like this: on the first request, authentication happens
+    as normal. However, all RDF files relevant to authenticating the client
+    are kept on disk (usually somewhere like '/tmp') in N-Triples format.
+    They are associated with a session that is given a randomly generated
+    identifier. This random identifier is sent the client as a cookie. On
+    subsequent requests, the client includes the cookie and thus
+    CGI::Auth::FOAF_SSL is able to retrieve the data it needs from disk in
+    N-Triples format, rather than having to reach out onto the web for it
+    again.
+
+    To use this feature, you must perform authentication before printing
+    anything back to the client, use CGI::Auth::FOAF_SSL's "cookie" method,
+    and then pass that to the client as part of the HTTP response header.
+
+      use CGI qw(:all);
+      use CGI::Auth::FOAF_SSL;
+  
+      my $auth = CGI::Auth::FOAF_SSL->new_from_cgi;
+  
+      if (defined $auth && $auth->is_secure)
+      {
+        print header('-type' => 'text/html',
+                     '-cookie' => $auth->cookie);
+
+        my $user = $auth->agent;
+        # ...
+      }
+      else # anonymous access
+      {
+        print header('-type' => 'text/html');
+    
+        # ...
+      }
+
+    Old sessions are automatically purged after an hour of inactivity.
 
 BUGS
     Please report any bugs to <http://rt.cpan.org/>.
 
 SEE ALSO
+    CGI::Auth::FOAF_SSL::CertifiedThing, CGI::Auth::FOAF_SSL::Agent,
+    CGI::Auth::FOAF_SSL::OnlineAccount.
+
     <http://lists.foaf-project.org/mailman/listinfo/foaf-protocols>,
     <http://esw.w3.org/topic/foaf+ssl>.
 
@@ -131,9 +209,9 @@ AUTHOR
     Toby Inkster, <tobyink@cpan.org>
 
 COPYRIGHT AND LICENSE
-    Copyright (C) 2009 by Toby Inkster
+    Copyright (C) 2009-2010 by Toby Inkster
 
     This library is free software; you can redistribute it and/or modify it
-    under the same terms as Perl itself, either Perl version 5.8.1 or, at
-    your option, any later version of Perl 5 you may have available.
+    under the same terms as Perl itself, either Perl version 5.8 or, at your
+    option, any later version of Perl 5 you may have available.
 

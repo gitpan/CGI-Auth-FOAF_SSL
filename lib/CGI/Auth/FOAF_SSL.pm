@@ -1,54 +1,51 @@
 package CGI::Auth::FOAF_SSL;
 
-use 5.008001;
+use 5.008;
 use strict;
 use warnings;
 
-BEGIN {
-	$CGI::Auth::FOAF_SSL::VERSION = '0.52';
-}
+our $VERSION = '1.00_00';
 
 =head1 NAME
 
-CGI::Auth::FOAF_SSL - Authentication using FOAF+SSL.
+CGI::Auth::FOAF_SSL - authentication using FOAF+SSL
 
 =head1 VERSION
 
-0.52
+1.00_00
 
 =head1 SYNOPSIS
 
- use CGI qw(:all);
- use CGI::Auth::FOAF_SSL;
- 
- my $cgi  = CGI->new;
- my $auth = CGI::Auth::FOAF_SSL->new_from_cgi($cgi);
- 
- print header('-type' => 'text/html', '-cookie' => $auth->cookie);
- 
- if (defined $auth && $auth->is_secure)
- {
- 	if (defined $auth->agent)
- 	{
- 		printf("<p>Hello <a href='%s'>%s</a>! You are logged on with FOAF+SSL.</p>\n",
- 			escapeHTML($auth->agent->homepage),
- 			escapeHTML($auth->agent->name));
- 	}
- 	else
- 	{
- 		print "<p>Hello! You are logged on with FOAF+SSL.</p>\n";
- 	}
- }
- else
- {
- 	print "<p>Greetings stranger. You are unknown in these parts.</p>\n";
- }
+  use CGI qw(:all);
+  use CGI::Auth::FOAF_SSL;
+  
+  my $auth = CGI::Auth::FOAF_SSL->new_from_cgi( CGI->new );
+  
+  print header('-type' => 'text/html', '-cookie' => $auth->cookie);
+  
+  if (defined $auth && $auth->is_secure)
+  {
+    if (defined $auth->agent)
+    {
+      printf("<p>Hello <a href='%s'>%s</a>!</p>\n",
+             escapeHTML($auth->agent->homepage),
+             escapeHTML($auth->agent->name));
+    }
+    else
+    {
+      print "<p>Hello!</p>\n";
+    }
+  }
+  else
+  {
+    print "<p>Greetings stranger!</p>\n";
+  }
 
 =head1 DESCRIPTION
 
 FOAF+SSL is a simple authentication scheme described at
 L<http://esw.w3.org/topic/foaf+ssl>. This module provides FOAF+SSL
-authentication for CGI scripts.
+authentication for CGI scripts written in Perl.
 
 This requires the web server to be using HTTPS and to be configured to
 request client certificates and to pass the certificate details on as
@@ -64,54 +61,46 @@ setup:
  SSLVerifyClient optional_no_ca
  SSLVerifyDepth  1
  SSLOptions +StdEnvVars +ExportCertData
- 
-As of version 0.50, this package no longer uses RDF::Redland, using
-RDF::Trine and RDF::Query instead.
 
 =cut
 
 use Carp;
 use CGI;
-use CGI::Auth::FOAF_SSL::OnlineAccount;
 use CGI::Auth::FOAF_SSL::Agent;
+use CGI::Auth::FOAF_SSL::CertifiedThing;
+use CGI::Auth::FOAF_SSL::OnlineAccount;
 use CGI::Session;
+use Encode qw(encode_utf8);
+use File::Spec;
 use IPC::Open2;
 use LWP::UserAgent;
-use RDF::RDFa::Parser 0.21;
-use RDF::Query;
-use RDF::Query::Client;
-use RDF::Trine 0.112;
-use RDF::Trine::Serializer::NTriples;
+use RDF::TrineShortcuts 0.05;
 use WWW::Finger 0.03;
 
-=head1 CONFIGURATION
+=head2 Configuration
 
-=over 8
+=over 4
 
-=item $CGI::Auth::FOAF_SSL::path_openssl = '/usr/bin/openssl'
+=item C<< $CGI::Auth::FOAF_SSL::path_openssl = '/usr/bin/openssl' >>
 
 Set the path to the OpenSSL binary.
 
-=item $CGI::Auth::FOAF_SSL::ua_string = 'MyTool/1.0'
+=item C<< $CGI::Auth::FOAF_SSL::ua_string = 'MyTool/1.0' >>
 
 Set the User-Agent string for any HTTP requests.
 
 =cut
 
-BEGIN {
-	$CGI::Auth::FOAF_SSL::path_openssl = '/usr/bin/openssl';
-	$CGI::Auth::FOAF_SSL::ua_string    = "CGI::Auth::FOAF_SSL/" 
-	                                   . $CGI::Auth::FOAF_SSL::VERSION
-	                                   . " ";
-}
+our $path_openssl = '/usr/bin/openssl';
+our $ua_string    = "CGI::Auth::FOAF_SSL/" . $CGI::Auth::FOAF_SSL::VERSION . " ";
 
 =back
 
-=head1 CONSTRUCTORS
+=head2 Constructors
 
-=over 8
+=over 4
 
-=item $auth = CGI::Auth::FOAF_SSL->new($pem_encoded)
+=item C<< $auth = CGI::Auth::FOAF_SSL->new($pem_encoded) >>
 
 Performs FOAF+SSL authentication on a PEM-encoded key. If authentication is
 completely unsuccessful, returns undef. Otherwise, returns a CGI::Auth::FOAF_SSL
@@ -153,18 +142,20 @@ sub new
 	return $rv;
 }
 
-=item $auth = CGI::Auth::FOAF_SSL->new_from_cgi($cgi_object)
+=item C<< $auth = CGI::Auth::FOAF_SSL->new_from_cgi($cgi_object) >>
 
 Performs FOAF+SSL authentication on a CGI object. This is a wrapper around
 C<new> which extracts the PEM-encoded client certificate from the CGI
 request. It has the same return values as C<new>.
+
+If $cgi_object is omitted, uses C<< CGI->new >> instead.
 
 =cut
 
 sub new_from_cgi
 {
 	my $class = shift;
-	my $cgi   = shift;
+	my $cgi   = shift || CGI->new;
 	
 	return undef unless $cgi->https;
 	
@@ -173,7 +164,7 @@ sub new_from_cgi
 	
 	# This does work, but is less elegant.
 	my $cert = $ENV{'SSL_CLIENT_CERT'};
-
+	
 	return $class->new($cert);
 }
 
@@ -199,8 +190,8 @@ sub new_smiple
 	my $response = <READ>;
 	return unless $response =~ /will not expire/;
 	close READ;
-	close WRITE;
-
+	close WRITE;	
+	
 	# Check certificate extensions. It's ugly but should work...
 	$pid = 0;
 	$pid = open2(\*READ, \*WRITE, "$openssl x509 -text");
@@ -225,7 +216,7 @@ sub new_smiple
 		$usages =~ s/(^\s*|\s*\r?\n?$)//g;
 		while (<READ>)
 			{ last if (/^            X509v3 Subject Alternative Name:/); }
-
+	
 		# Unless certificate is specifically allowed to be used for HTTPS, then
 		# reject it.
 		return unless $usages =~ /SSL Client/i;
@@ -234,7 +225,7 @@ sub new_smiple
 	$alt_name =~ s/(^\s*|\s*\r?\n?$)//g;
 	close READ;
 	close WRITE;
-
+	
 	# Only allow FOAF+SSL certificates.
 	$rv->{'subject_alt_names'} = {};
 	while ($alt_name =~ /(?:\s|\,|^)(URI|email):([^\s\,]+)(?:\s|\,|$)/ig)
@@ -243,7 +234,7 @@ sub new_smiple
 	}
 	
 	return unless $rv->{'subject_alt_names'};
-
+	
 	# Modulus.
 	$pid = 0;
 	$pid = open2(\*READ, \*WRITE, "$openssl x509 -modulus");
@@ -259,7 +250,7 @@ sub new_smiple
 	return unless $exponent_line =~ /Exponent: (\d+) \(0x([0-9A-F]+)\)/i;
 	$rv->{'cert_exponent_dec'} = $1;
 	$rv->{'cert_exponent_hex'} = $2;	
-
+	
 	bless $rv, $class;
 }
 
@@ -292,17 +283,17 @@ sub verify_certificate_by_uri
 	
 	return 0
 		unless $rv->{'correct_cert_modulus_hex'} && $rv->{'correct_cert_exponent_dec'};
-
+	
 	$rv->{'correct_cert_exponent_dec'} =~ s/[^0-9-]//ig;
 	$rv->{'correct_cert_modulus_hex'}  =~ s/[^A-Z0-9]//ig;
 	$rv->{'correct_cert_modulus_hex'}  = uc($rv->{'correct_cert_modulus_hex'});
-
+	
 	while (length $rv->{'correct_cert_modulus_hex'} < length $rv->{'cert_modulus_hex'})
 		{ $rv->{'correct_cert_modulus_hex'} = '0' . $rv->{'correct_cert_modulus_hex'}; }
-
+	
 	while (length $rv->{'correct_cert_modulus_hex'} > length $rv->{'cert_modulus_hex'})
 		{ $rv->{'cert_modulus_hex'} = '0' . $rv->{'cert_modulus_hex'}; }
-
+	
 	if (($rv->{'correct_cert_modulus_hex'} eq $rv->{'cert_modulus_hex'})
 	&&  ($rv->{'correct_cert_exponent_dec'} == $rv->{'cert_exponent_dec'}))
 	{
@@ -315,7 +306,7 @@ sub verify_certificate_by_uri
 		
 		return 1;
 	}
-
+	
 	return 0;
 }
 
@@ -328,7 +319,7 @@ sub verify_certificate_by_email
 	
 	return 0
 		unless defined $fp->endpoint and defined $fp->webid;
-
+	
 	my $query_string = sprintf("PREFIX cert: <http://www.w3.org/ns/auth/cert#> "
 	                          ."PREFIX rsa: <http://www.w3.org/ns/auth/rsa#> "
 	                          ."SELECT ?decExponent ?hexModulus "
@@ -340,7 +331,7 @@ sub verify_certificate_by_email
 	                          ."        rsa:public_exponent [ cert:decimal ?decExponent ] . "
 	                          ."}",
 	                          $fp->webid);
-									  
+	
 	my $query   = RDF::Query::Client->new($query_string);
 	my $results = $query->execute($fp->endpoint, {QueryMethod=>'POST'});
 	
@@ -352,11 +343,11 @@ sub verify_certificate_by_email
 	
 	return 0
 		unless $rv->{'correct_cert_modulus_hex'} && $rv->{'correct_cert_exponent_dec'};
-
+	
 	$rv->{'correct_cert_exponent_dec'} =~ s/[^0-9]//ig;
 	$rv->{'correct_cert_modulus_hex'}  =~ s/[^A-Z0-9]//ig;
 	$rv->{'correct_cert_modulus_hex'}  = uc($rv->{'correct_cert_modulus_hex'});
-
+	
 	if (($rv->{'correct_cert_modulus_hex'} eq $rv->{'cert_modulus_hex'})
 	&&  ($rv->{'correct_cert_exponent_dec'} == $rv->{'cert_exponent_dec'}))
 	{
@@ -370,7 +361,7 @@ sub verify_certificate_by_email
 		
 		return 1;
 	}
-
+	
 	return 0;
 }
 
@@ -409,7 +400,7 @@ sub load_personal_info
 	                    'http://xmlns.com/foaf/0.1/OnlineGamingAccount',
 	                    'http://xmlns.com/foaf/0.1/OnlineEcommerceAccount',
 	                    'http://rdfs.org/sioc/ns#User');
-
+	
 	# Check to see if $self->identity is a foaf:Agent or a foaf:OnlineAccount.
 	my $query_string = sprintf("SELECT ?type "
 	                          ."WHERE { "
@@ -442,7 +433,7 @@ sub load_personal_info
 		
 		$results->next_result;
 	}
-
+	
 	# No explicit rdf:type. :-(
 	#
 	# Might be able to figure it out from existence of certain predicates:
@@ -451,9 +442,9 @@ sub load_personal_info
 	#      - foaf:accountServiceHomepage
 	#      - foaf:accountName
 	#      - http://rdfs.org/sioc/ns#account_of
-
+	
 	my $retrievedAgentUri;
-
+	
 	if (!defined $rv->{'cert_subject_type'}
 	||  $rv->{'cert_subject_type'} eq 'OnlineAccount')
 	{
@@ -474,7 +465,7 @@ sub load_personal_info
 				unless defined $retrievedAgentUri;
 		}
 	}
-
+	
 	unless (defined $rv->{'cert_subject_type'})
 	{
 		my $results = $rv->_exec_query(
@@ -489,7 +480,7 @@ sub load_personal_info
 		if ($results->is_boolean && $results->get_boolean)
 			{ $rv->{'cert_subject_type'} = 'OnlineAccount'; }
 	}
-
+	
 	if (defined $rv->{'cert_subject_type'} 
 	&&  $rv->{'cert_subject_type'} eq 'Agent')
 	{
@@ -500,7 +491,7 @@ sub load_personal_info
 			
 		$rv->{'thing'} = $rv->{'agent'};
 		$rv->{'validation'} = 'agent';
-
+		
 		return 1;
 	}
 	
@@ -511,9 +502,9 @@ sub load_personal_info
 			$rv->{'cert_subject_uri'},
 			$rv->{'cert_subject_model'},
 			$rv->{'cert_subject_endpoint'});
-
+		
 		$rv->{'thing'} = $rv->{'account'};
-
+		
 		if (defined $retrievedAgentUri)
 		{
 			my $model = $rv->get_trine_model($retrievedAgentUri);
@@ -542,40 +533,60 @@ sub load_personal_info
 		
 		return 1;
 	}
-
+	
 	$rv->{'thing'} = CGI::Auth::FOAF_SSL::CertifiedThing->new(
 		$rv->{'cert_subject_uri'},
 		$rv->{'cert_subject_model'},
 		$rv->{'cert_subject_endpoint'});
-
+	
 	return 0;
 }
 
 =back
 
-=head1 PUBLIC METHODS
+=head2 Public Methods
 
-=over 8
+=over 4
 
-=cut
-
-=item $cookie = $auth->cookie
-
-HTTP cookie related to the authentication process. Sending this to the
-client isn't strictly necessary, but it allows for a session to be
-established, greatly speeding up subsequent accesses.
-
-=cut
-
-sub cookie
-{
-	my $this = shift;
-	return $this->{'session'}->cookie;
-}
-
-=item $bool = $auth->is_secure
+=item C<< $bool = $auth->is_secure >>
 
 Returns true iff the authentication process was completely successful.
+
+What does it mean for the authentication process to have been partially
+successful? There are two such situations:
+
+=over 4
+
+=item * The rdf:type of the URI given in subjectAltName could not be established.
+
+Perhaps no RDF could be found which provides an rdf:type for the URI,
+or if an rdf:type is found, it is one that this module does not
+recognise.
+
+=item * The subjectAltName URI is established to be a foaf:OnlineAccount, but no account holder is confirmed.
+
+To confirm that the account in question belongs to someone, the
+RDF data associated with the account must provide the URI of an
+account holder. Whatsmore the RDF data associated with the account
+holder's URI must confirm that the account really does belong to
+them.
+
+This means that when dereferencing the subjectAltName and finding
+that it identifies an account I<?account>, the data must provide
+the following triples:
+
+  ?webid foaf:account ?account .
+  ?account a foaf:OnlineAccount .
+
+And when I<?webid> is dereferenced, it must also provide this triple:
+
+  ?webid foaf:account ?account .
+
+=back
+
+In either of these two situations, it is probably not safe to trust
+any data you get back from the C<agent>, C<account> or C<certified_thing>
+methods (except perhaps C<< $auth->certified_thing->identity >>).
 
 =cut
 
@@ -585,13 +596,10 @@ sub is_secure
 	return ($this->{'validation'} eq 'agent');
 }
 
-=item $agent = $auth->agent
+=item C<< $agent = $auth->agent >>
 
-Returns an object which represents the agent making the request. This object
-includes the following methods: C<name>, C<homepage>, C<mbox> and C<img>.
-
-Another method included is C<identity> which returns the RDF URI representing
-the agent.
+Returns a L<CGI::Auth::FOAF_SSL::Agent> object which represents the agent
+making the request. Occasionally undef.
 
 =cut
 
@@ -601,13 +609,10 @@ sub agent
 	return $this->{'agent'};
 }
 
-=item $account = $auth->account
+=item C<< $account = $auth->account >>
 
-Returns an object which represents the account making the request. This object
-includes the following methods: C<name>, C<homepage>.
-
-Another method included is C<identity> which returns the RDF URI representing
-the account.
+Returns a L<CGI::Auth::FOAF_SSL::OnlineAccount> object which represents
+the online account of the agent making the request. Usually undef.
 
 =cut
 
@@ -617,10 +622,10 @@ sub account
 	return $this->{'account'};
 }
 
-=item $thing = $auth->certified_thing
+=item C<< $thing = $auth->certified_thing >>
 
-Returns an object representing the thing which the certificate belongs to.
-This object includes a method called C<identity> which returns its RDF URI.
+Returns a L<CGI::Auth::FOAF_SSL::CertifiedThing> object (or a descendent class)
+which represents the thing given in the certificate's subjectAltName.
 
 Usually you will want to use C<agent> or C<account> instead.
 
@@ -632,13 +637,28 @@ sub certified_thing
 	return $this->{'thing'};
 }
 
+=item C<< $cookie = $auth->cookie >>
+
+HTTP cookie related to the authentication process. Sending this to the
+client isn't strictly necessary, but it allows for a session to be
+established, greatly speeding up subsequent accesses. See also the
+COOKIES section of this documentation.
+
+=cut
+
+sub cookie
+{
+	my $this = shift;
+	return $this->{'session'}->cookie;
+}
+
 =back
 
-=head1 UTILITY METHOD
+=head2 Utility Method
 
-=over 8
+=over 4
 
-=item $model = $auth->get_trine_model($uri);
+=item C<< $model = $auth->get_trine_model($uri) >>
 
 Get an RDF::Trine::Model corresponding to a URI.
 
@@ -652,7 +672,7 @@ sub get_trine_model
 	# Session for caching data into.
 	unless (defined $this->{'session'})
 	{
-		$this->{'session'} = CGI::Session->new('driver:file', undef, {Directory=>'/tmp'});
+		$this->{'session'} = CGI::Session->new('driver:file', undef, {Directory => File::Spec->tmpdir});
 		$this->{'session'}->expire('+1h');
 	}
 	
@@ -660,49 +680,17 @@ sub get_trine_model
 	if (defined $this->{'session'}->param($uri)
 	and length $this->{'session'}->param($uri))
 	{
-		my $parser = RDF::Trine::Parser::Turtle->new;
-		my $model  = RDF::Trine::Model->new( RDF::Trine::Store->temporary_store );
-		$parser->parse_into_model( $uri, $this->{'session'}->param($uri) , $model );
-		return $model;
+		return rdf_parse($this->{'session'}->param($uri),
+			base=>$uri , type=>'ntriples');
 	}
 	
 	my $ua = LWP::UserAgent->new(agent=>$CGI::Auth::FOAF_SSL::ua_string); 
-	$ua->default_headers->push_header('Accept' => "application/rdf+xml, application/xhtml+xml, text/html, text/turtle, application/x-turtle, */*");
+	$ua->default_headers->push_header('Accept' => "application/rdf+xml, text/turtle, application/x-turtle, application/xhtml+xml;q=0.9, text/html;q=0.9, */*;q=0.1");
 	my $response = $ua->get($uri);
 	return unless length $response->content;
+	my $model    = rdf_parse($response);
 	
-	my $model;
-	
-	# If response is (X)HTML, parse using RDF::RDFa::Parser instead of Trine.
-	if ($response->header('content-type')
-		=~ m#^(text/html|application/xhtml.xml|image/svg(.xml)?)#i)
-	{
-		my $opts = $response->header('content-type') =~ m#^(image/svg(.xml)?)#i
-			? RDF::RDFa::Parser::OPTS_SVG
-			: RDF::RDFa::Parser::OPTS_XHTML ;
-		my $parser = RDF::RDFa::Parser->new($response->decoded_content, $uri, $opts);
-		$parser->consume;
-		$model = $parser->graph;
-	}
-
-	# Not RDFa, so let Trine handle it as best it can.
-	else
-	{
-			$model      = RDF::Trine::Model->new( RDF::Trine::Store->temporary_store );
-			
-			my $parser;
-			$parser  = RDF::Trine::Parser::Turtle->new
-				if $response->header('content-type') =~ /(n3|turtle|text.plain)/i;
-			$parser  = RDF::Trine::Parser::RDFJSON->new
-				if $response->header('content-type') =~ /(json)/i && !defined $parser;
-			$parser  = RDF::Trine::Parser::RDFXML->new
-				unless defined $parser;
-			$parser->parse_into_model( $uri , $response->decoded_content , $model );
-	}
-	
-	my $serializer = RDF::Trine::Serializer::NTriples->new();
-	$this->{'session'}->param($uri,
-		$serializer->serialize_model_to_string($model));
+	$this->{'session'}->param($uri, rdf_string($model, 'ntriples'));
 	$this->{'session'}->flush;
 	
 	return $model;
@@ -714,11 +702,67 @@ __END__
 
 =back
 
+=head1 COOKIES
+
+FOAF+SSL is entirely RESTful: there is no state kept between requests.
+This really simplifies authentication for both parties (client and
+server) for one-off requests. However, because FOAF+SSL requires the
+server to make various HTTP requests to authenticate the client, each
+request is slowed down significantly.
+
+Cookies provide us with a way of speeding this up. Use of cookies is
+entirely optional, but greatly increases the speed of authentication
+for the second and subsequent requests a client makes. If your
+FOAF+SSL-secured service generally requires clients to make multiple
+requests in a short period, you should seriously consider using
+cookies to speed this up.
+
+The method works like this: on the first request, authentication happens
+as normal. However, all RDF files relevant to authenticating the client
+are kept on disk (usually somewhere like '/tmp') in N-Triples format.
+They are associated with a session that is given a randomly generated
+identifier. This random identifier is sent the client as a cookie. On
+subsequent requests, the client includes the cookie and thus
+CGI::Auth::FOAF_SSL is able to retrieve the data it needs from disk in
+N-Triples format, rather than having to reach out onto the web for
+it again.
+
+To use this feature, you must perform authentication before printing
+anything back to the client, use CGI::Auth::FOAF_SSL's C<cookie>
+method, and then pass that to the client as part of the HTTP response
+header.
+
+  use CGI qw(:all);
+  use CGI::Auth::FOAF_SSL;
+  
+  my $auth = CGI::Auth::FOAF_SSL->new_from_cgi;
+  
+  if (defined $auth && $auth->is_secure)
+  {
+    print header('-type' => 'text/html',
+                 '-cookie' => $auth->cookie);
+
+    my $user = $auth->agent;
+    # ...
+  }
+  else # anonymous access
+  {
+    print header('-type' => 'text/html');
+    
+    # ...
+  }
+
+Old sessions are automatically purged after an hour of inactivity.
+
 =head1 BUGS
 
 Please report any bugs to L<http://rt.cpan.org/>.
 
 =head1 SEE ALSO
+
+L<CGI::Auth::FOAF_SSL::CertifiedThing>,
+L<CGI::Auth::FOAF_SSL::Agent>,
+L<CGI::Auth::FOAF_SSL::OnlineAccount>.
 
 L<http://lists.foaf-project.org/mailman/listinfo/foaf-protocols>,
 L<http://esw.w3.org/topic/foaf+ssl>.
@@ -735,10 +779,10 @@ Toby Inkster, E<lt>tobyink@cpan.orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2009 by Toby Inkster
+Copyright (C) 2009-2010 by Toby Inkster
 
 This library is free software; you can redistribute it and/or modify
-it under the same terms as Perl itself, either Perl version 5.8.1 or,
+it under the same terms as Perl itself, either Perl version 5.8 or,
 at your option, any later version of Perl 5 you may have available.
 
 =cut

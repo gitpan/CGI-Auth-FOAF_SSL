@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rdf:RDF
+   xmlns:dc="http://purl.org/dc/terms/"
+   xmlns:dcs="http://ontologi.es/doap-changeset#"
+   xmlns:foaf="http://xmlns.com/foaf/0.1/"
+   xmlns:my="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+   xmlns:toby="http://tobyinkster.co.uk/#"
+   xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+   xmlns="http://usefulinc.com/ns/doap#">
+  <rdf:Description rdf:about="file:///home/tai/src/perlmods/CGI-Auth-FOAF_SSL/Changes.ttl">
+    <dc:creator rdf:resource="http://tobyinkster.co.uk/#i"/>
+    <dc:description xml:lang="en">Revision history for Perl extension CGI::Auth::FOAF_SSL.</dc:description>
+    <dc:subject rdf:resource="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#project"/>
+    <dc:title>Changes</dc:title>
+  </rdf:Description>
+  <Version rdf:about="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_0_01">
+    <dc:issued rdf:datatype="http://www.w3.org/2001/XMLSchema#date">2009-02-05</dc:issued>
+    <file-release rdf:resource="http://backpan.perl.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.01.tar.gz"/>
+    <revision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">0.01</revision>
+    <rdfs:label xml:lang="en">First release</rdfs:label>
+  </Version>
+  <Version rdf:about="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_0_02">
+    <dcs:changeset>
+      <rdf:Description>
+        <dcs:versus rdf:resource="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_0_01"/>
+        <dc:item>
+          <rdf:Description>
+            <rdfs:label xml:lang="en">Changed API.</rdfs:label>
+          </rdf:Description>
+        </dc:item>
+        <dc:item>
+          <dcs:Addition>
+            <rdfs:label xml:lang="en">Allow subjectAltName to point to a foaf:OnlineAccount.</rdfs:label>
+          </dcs:Addition>
+        </dc:item>
+      </rdf:Description>
+    </dcs:changeset>
+    <dc:issued rdf:datatype="http://www.w3.org/2001/XMLSchema#date">2009-02-19</dc:issued>
+    <file-release rdf:resource="http://backpan.perl.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.02.tar.gz"/>
+    <revision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">0.02</revision>
+  </Version>
+  <Version rdf:about="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_0_03">
+    <dcs:changeset>
+      <rdf:Description>
+        <dcs:versus rdf:resource="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_0_02"/>
+        <dc:item>
+          <dcs:Bugfix>
+            <rdfs:label xml:lang="en">Fixed some bugs with new_from_cgi.</rdfs:label>
+          </dcs:Bugfix>
+        </dc:item>
+        <dc:item>
+          <rdf:Description>
+            <rdfs:label xml:lang="en">Documentation improvements.</rdfs:label>
+          </rdf:Description>
+        </dc:item>
+      </rdf:Description>
+    </dcs:changeset>
+    <dc:issued rdf:datatype="http://www.w3.org/2001/XMLSchema#date">2009-03-01</dc:issued>
+    <file-release rdf:resource="http://backpan.perl.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.03.tar.gz"/>
+    <revision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">0.03</revision>
+  </Version>
+  <Version rdf:about="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_0_04">
+    <dcs:changeset>
+      <rdf:Description>
+        <dcs:versus rdf:resource="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_0_03"/>
+        <dc:item>
+          <dcs:Bugfix>
+            <rdfs:label xml:lang="en">foaf:Agent-related fix.</rdfs:label>
+          </dcs:Bugfix>
+        </dc:item>
+        <dc:item>
+          <dcs:Bugfix>
+            <rdfs:label xml:lang="en">foaf:OnlineAccount-related security fix.</rdfs:label>
+          </dcs:Bugfix>
+        </dc:item>
+      </rdf:Description>
+    </dcs:changeset>
+    <dc:issued rdf:datatype="http://www.w3.org/2001/XMLSchema#date">2009-03-01</dc:issued>
+    <file-release rdf:resource="http://backpan.perl.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.04.tar.gz"/>
+    <revision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">0.04</revision>
+  </Version>
+  <Version rdf:about="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_0_05">
+    <dcs:changeset>
+      <rdf:Description>
+        <dcs:versus rdf:resource="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_0_05"/>
+        <dc:item>
+          <rdf:Description>
+            <rdfs:label xml:lang="en">No longer require certs to include Netscape extensions.</rdfs:label>
+          </rdf:Description>
+        </dc:item>
+        <dc:item>
+          <dcs:Addition>
+            <rdfs:label xml:lang="en">Support for consuming RDFa.</rdfs:label>
+          </dcs:Addition>
+        </dc:item>
+      </rdf:Description>
+    </dcs:changeset>
+    <dc:issued rdf:datatype="http://www.w3.org/2001/XMLSchema#date">2009-03-26</dc:issued>
+    <file-release rdf:resource="http://backpan.perl.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.05.tar.gz"/>
+    <revision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">0.05</revision>
+  </Version>
+  <Version rdf:about="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_0_50">
+    <dcs:changeset>
+      <rdf:Description>
+        <dcs:versus rdf:resource="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_0_05"/>
+        <dc:item>
+          <rdf:Description>
+            <rdfs:label xml:lang="en">Switch from RDF::Redland to RDF::Trine.</rdfs:label>
+          </rdf:Description>
+        </dc:item>
+        <dc:item>
+          <dcs:Addition>
+            <rdfs:label xml:lang="en">Support Fingerpoint as fallback for URIless certificates.</rdfs:label>
+          </dcs:Addition>
+        </dc:item>
+        <dc:item>
+          <dcs:Addition>
+            <rdfs:label xml:lang="en">Support multiple URIs in subjectAltName.</rdfs:label>
+          </dcs:Addition>
+        </dc:item>
+        <dc:item>
+          <dcs:Addition>
+            <rdfs:label xml:lang="en">Session caching with cookies for speedup.</rdfs:label>
+          </dcs:Addition>
+        </dc:item>
+        <dc:item>
+          <dcs:Update>
+            <rdfs:label xml:lang="en">New build system using Module::Install.</rdfs:label>
+          </dcs:Update>
+        </dc:item>
+      </rdf:Description>
+    </dcs:changeset>
+    <dc:issued rdf:datatype="http://www.w3.org/2001/XMLSchema#date">2009-12-14</dc:issued>
+    <file-release rdf:resource="http://backpan.perl.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.50.tar.gz"/>
+    <revision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">0.50</revision>
+    <rdfs:label xml:lang="en">Trine Edition</rdfs:label>
+  </Version>
+  <Version rdf:about="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_0_51">
+    <dcs:changeset>
+      <rdf:Description>
+        <dcs:versus rdf:resource="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_0_50"/>
+        <dc:item>
+          <rdf:Description>
+            <rdfs:label xml:lang="en">Use WWW::Finger instead of its subclass WWW::Finger::Fingerpoint.</rdfs:label>
+          </rdf:Description>
+        </dc:item>
+        <dc:item>
+          <rdf:Description>
+            <rdfs:label xml:lang="en">Fix package signature.</rdfs:label>
+          </rdf:Description>
+        </dc:item>
+      </rdf:Description>
+    </dcs:changeset>
+    <dc:issued rdf:datatype="http://www.w3.org/2001/XMLSchema#date">2009-12-15</dc:issued>
+    <file-release rdf:resource="http://backpan.perl.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.51.tar.gz"/>
+    <revision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">0.51</revision>
+  </Version>
+  <Version rdf:about="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_0_52">
+    <dcs:changeset>
+      <rdf:Description>
+        <dcs:versus rdf:resource="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_0_51"/>
+        <dc:item>
+          <dcs:Update>
+            <rdfs:label xml:lang="en">Support new foaf:account property.</rdfs:label>
+          </dcs:Update>
+        </dc:item>
+        <dc:item>
+          <dcs:Bugfix>
+            <rdfs:label xml:lang="en">Correct for mismatched hex string lengths by adding leading zeros to shorter string.</rdfs:label>
+          </dcs:Bugfix>
+        </dc:item>
+      </rdf:Description>
+    </dcs:changeset>
+    <dc:issued rdf:datatype="http://www.w3.org/2001/XMLSchema#date">2009-12-16</dc:issued>
+    <file-release rdf:resource="http://backpan.perl.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.52.tar.gz"/>
+    <revision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">0.52</revision>
+  </Version>
+  <Version rdf:about="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_1_00_00">
+    <dcs:changeset>
+      <rdf:Description>
+        <dcs:versus rdf:resource="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_0_52"/>
+        <dc:item>
+          <dcs:Update>
+            <rdfs:label xml:lang="en">use RDF::TrineShortcuts</rdfs:label>
+          </dcs:Update>
+        </dc:item>
+        <dc:item>
+          <rdf:Description>
+            <rdfs:label xml:lang="en">Much better documentation.</rdfs:label>
+          </rdf:Description>
+        </dc:item>
+        <dc:item>
+          <dcs:Update>
+            <rdfs:label xml:lang="en">Use my swanky DOAP-powered build system.</rdfs:label>
+          </dcs:Update>
+        </dc:item>
+        <dc:item>
+          <dcs:Addition>
+            <rdfs:label>service_homepage method for CGI::Auth::FOAF_SSL::OnlineAccount objects.</rdfs:label>
+          </dcs:Addition>
+        </dc:item>
+        <dc:item>
+          <rdf:Description>
+            <rdfs:label xml:lang="en">Allow new_from_cgi to be called with no arguments.</rdfs:label>
+          </rdf:Description>
+        </dc:item>
+      </rdf:Description>
+    </dcs:changeset>
+    <dc:issued rdf:datatype="http://www.w3.org/2001/XMLSchema#date">2010-02-05</dc:issued>
+    <file-release rdf:resource="http://backpan.perl.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-1.00_00.tar.gz"/>
+    <revision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">0.52</revision>
+  </Version>
+  <Project rdf:about="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#project">
+    <bug-database rdf:resource="http://rt.cpan.org/Dist/Display.html?Queue=CGI-Auth-FOAF_SSL"/>
+    <created rdf:datatype="http://www.w3.org/2001/XMLSchema#date">2009-02-05</created>
+    <developer rdf:resource="http://tobyinkster.co.uk/#i"/>
+    <documenter rdf:resource="http://tobyinkster.co.uk/#i"/>
+    <download-page rdf:resource="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/"/>
+    <homepage rdf:resource="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/"/>
+    <license rdf:resource="http://dev.perl.org/licenses/"/>
+    <maintainer rdf:resource="http://tobyinkster.co.uk/#i"/>
+    <name>CGI-Auth-FOAF_SSL</name>
+    <programming-language>Perl</programming-language>
+    <release rdf:resource="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_0_01"/>
+    <release rdf:resource="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_0_02"/>
+    <release rdf:resource="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_0_03"/>
+    <release rdf:resource="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_0_04"/>
+    <release rdf:resource="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_0_05"/>
+    <release rdf:resource="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_0_50"/>
+    <release rdf:resource="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_0_51"/>
+    <release rdf:resource="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_0_52"/>
+    <release rdf:resource="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_1_00_00"/>
+    <repository>
+      <SVNRepository>
+        <browse rdf:resource="http://goddamn.co.uk/viewvc/perlmods/CGI-Auth-FOAF_SSL/"/>
+      </SVNRepository>
+    </repository>
+    <shortdesc xml:lang="en">authentication using FOAF+SSL</shortdesc>
+    <tester rdf:resource="http://tobyinkster.co.uk/#i"/>
+  </Project>
+  <foaf:Person rdf:about="http://tobyinkster.co.uk/#i">
+    <foaf:homepage rdf:resource="http://tobyinkster.co.uk/"/>
+    <foaf:name>Toby Inkster</foaf:name>
+    <foaf:page rdf:resource="http://search.cpan.org/~tobyink/"/>
+  </foaf:Person>
+</rdf:RDF>

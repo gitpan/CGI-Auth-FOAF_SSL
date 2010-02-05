@@ -1,36 +1,30 @@
-Revision history for Perl extension CGI::Auth::FOAF_SSL.
+############################################################################
+## Changes #################################################################
+############################################################################
 
-0.01  Thu Feb  5 13:09:17 2009
-	- original version; created by h2xs 1.23 with options
-		-X CGI::Auth::FOAF_SSL
+CGI-Auth-FOAF_SSL
+=================
 
-0.02  Thu Feb 19 22:41:00 2009
-	- changed API
-	- allow subjectAltName to point to either foaf:Person or foaf:OnlineAccount
+Created:      2009-02-05
+Home page:    <http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/>
+Bug tracker:  <http://rt.cpan.org/Dist/Display.html?Queue=CGI-Auth-FOAF_SSL>
+Maintainer:   Toby Inkster
 
-0.03  Sun Mar  1 11:11:11 2009
-	- Bug fixes in new_from_cgi()
-	- Improved documentation
+0.52 [2009-12-16]
 
-0.04  Sun Mar  1 22:18:00 2009
-	- Bug fix for foaf:Agents
-	- Security improvement for foaf:OnlineAccounts
+0.52 [2010-02-05]
 
-0.05  Thu Mar 26 1 15:36:39 2009
-	- No longer require Netscape-specific SSL extensions
-	- Support for RDFa using RDF::RDFa::Parser
+0.51 [2009-12-15]
 
-0.50
-	- Switch from RDF::Redland to RDF::Trine.
-	- Support Fingerpoint as fallback for URIless certificates.
-	- Support multiple URIs in subjectAltName.
-	- Optional session caching to speed up operation.
-	- Use Module::Install system for installation.
+0.50 [2009-12-14] # Trine Edition
 
-0.51
-	- Use WWW::Finger instead of WWW::Finger::Fingerpoint.
-	- Fix package signature.
+0.05 [2009-03-26]
 
-0.52
-	- Support for new foaf:account property.
-	- Correct for mismatched X.509 cert modulus hex string lengths.
+0.04 [2009-03-01]
+
+0.03 [2009-03-01]
+
+0.02 [2009-02-19]
+
+0.01 [2009-02-05] # First release
+
