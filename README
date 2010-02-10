@@ -1,9 +1,6 @@
 NAME
     CGI::Auth::FOAF_SSL - authentication using FOAF+SSL
 
-VERSION
-    1.00_00
-
 SYNOPSIS
       use CGI qw(:all);
       use CGI::Auth::FOAF_SSL;
@@ -29,6 +26,9 @@ SYNOPSIS
       {
         print "<p>Greetings stranger!</p>\n";
       }
+
+VERSION
+    1.00_01
 
 DESCRIPTION
     FOAF+SSL is a simple authentication scheme described at
@@ -193,16 +193,18 @@ BUGS
     Please report any bugs to <http://rt.cpan.org/>.
 
 SEE ALSO
-    CGI::Auth::FOAF_SSL::CertifiedThing, CGI::Auth::FOAF_SSL::Agent,
-    CGI::Auth::FOAF_SSL::OnlineAccount.
+    Helper modules: CGI::Auth::FOAF_SSL::CertifiedThing,
+    CGI::Auth::FOAF_SSL::Agent, CGI::Auth::FOAF_SSL::OnlineAccount.
 
+    Related modules: CGI, RDF::Trine, RDF::ACL.
+
+    Information about FOAF+SSL:
     <http://lists.foaf-project.org/mailman/listinfo/foaf-protocols>,
     <http://esw.w3.org/topic/foaf+ssl>.
 
-    CGI, RDF::Trine.
+    SSL in Apache: <http://httpd.apache.org/docs/2.0/mod/mod_ssl.html>.
 
-    <http://httpd.apache.org/docs/2.0/mod/mod_ssl.html>.
-
+    Mailing list for general Perl RDF/SemWeb discussion and support:
     <http://www.perlrdf.org/>.
 
 AUTHOR

@@ -25,7 +25,7 @@ my:v_0_01
 	a               :Version ;
 	dc:issued       "2009-02-05"^^xsd:date ;
 	:revision       "0.01"^^xsd:string ;
-	:file-release   <http://backpan.perl.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.01.tar.gz> ;
+	:file-release   <http://backpan.cpan.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.01.tar.gz> ;
 	rdfs:label      "First release"@en .
 
 my:v_0_02
@@ -33,7 +33,7 @@ my:v_0_02
 	a               :Version ;
 	dc:issued       "2009-02-19"^^xsd:date ;
 	:revision       "0.02"^^xsd:string ;
-	:file-release   <http://backpan.perl.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.02.tar.gz> ;
+	:file-release   <http://backpan.cpan.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.02.tar.gz> ;
 	dcs:changeset [
 		dcs:versus my:v_0_01 ;
 		dc:item
@@ -46,7 +46,7 @@ my:v_0_03
 	a               :Version ;
 	dc:issued       "2009-03-01"^^xsd:date ;
 	:revision       "0.03"^^xsd:string ;
-	:file-release   <http://backpan.perl.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.03.tar.gz> ;
+	:file-release   <http://backpan.cpan.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.03.tar.gz> ;
 	dcs:changeset [
 		dcs:versus my:v_0_02 ;
 		dc:item
@@ -59,7 +59,7 @@ my:v_0_04
 	a               :Version ;
 	dc:issued       "2009-03-01"^^xsd:date ;
 	:revision       "0.04"^^xsd:string ;
-	:file-release   <http://backpan.perl.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.04.tar.gz> ;
+	:file-release   <http://backpan.cpan.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.04.tar.gz> ;
 	dcs:changeset [
 		dcs:versus my:v_0_03 ;
 		dc:item
@@ -72,7 +72,7 @@ my:v_0_05
 	a               :Version ;
 	dc:issued       "2009-03-26"^^xsd:date ;
 	:revision       "0.05"^^xsd:string ;
-	:file-release   <http://backpan.perl.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.05.tar.gz> ;
+	:file-release   <http://backpan.cpan.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.05.tar.gz> ;
 	dcs:changeset [
 		dcs:versus my:v_0_05 ;
 		dc:item
@@ -85,7 +85,7 @@ my:v_0_50
 	a               :Version ;
 	dc:issued       "2009-12-14"^^xsd:date ;
 	:revision       "0.50"^^xsd:string ;
-	:file-release   <http://backpan.perl.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.50.tar.gz> ;
+	:file-release   <http://backpan.cpan.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.50.tar.gz> ;
 	rdfs:label      "Trine Edition"@en ;
 	dcs:changeset [
 		dcs:versus my:v_0_05 ;
@@ -102,7 +102,7 @@ my:v_0_51
 	a               :Version ;
 	dc:issued       "2009-12-15"^^xsd:date ;
 	:revision       "0.51"^^xsd:string ;
-	:file-release   <http://backpan.perl.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.51.tar.gz> ;
+	:file-release   <http://backpan.cpan.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.51.tar.gz> ;
 	dcs:changeset [
 		dcs:versus my:v_0_50 ;
 		dc:item
@@ -115,7 +115,7 @@ my:v_0_52
 	a               :Version ;
 	dc:issued       "2009-12-16"^^xsd:date ;
 	:revision       "0.52"^^xsd:string ;
-	:file-release   <http://backpan.perl.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.52.tar.gz> ;
+	:file-release   <http://backpan.cpan.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.52.tar.gz> ;
 	dcs:changeset [
 		dcs:versus my:v_0_51 ;
 		dc:item
@@ -127,8 +127,8 @@ my:v_1_00_00
 
 	a               :Version ;
 	dc:issued       "2010-02-05"^^xsd:date ;
-	:revision       "0.52"^^xsd:string ;
-	:file-release   <http://backpan.perl.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-1.00_00.tar.gz> ;
+	:revision       "1.00_00"^^xsd:string ;
+	:file-release   <http://backpan.cpan.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-1.00_00.tar.gz> ;
 	dcs:changeset [
 		dcs:versus my:v_0_52 ;
 		dc:item
@@ -139,6 +139,16 @@ my:v_1_00_00
 			[ rdfs:label "Allow new_from_cgi to be called with no arguments."@en ]
 		] .
 
+my:v_1_00_01
+	a               :Version ;
+	dc:issued       "2010-02-10"^^xsd:date ;
+	:revision       "1.00_01"^^xsd:string ;
+	:file-release   <http://backpan.cpan.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-1.00_01.tar.gz> ;
+	dcs:changeset [
+		dcs:versus my:v_1_00_00 ;
+		dcs:item
+			[ rdfs:label "Documentation improvements"@en ]
+		] .
 
 #############################################################
 
@@ -170,6 +180,6 @@ toby:i
 	foaf:name       "Toby Inkster" ;
 	foaf:homepage   <http://tobyinkster.co.uk/> ;
 	foaf:page       <http://search.cpan.org/~tobyink/> ;
-	.
+	foaf:mbox       <mailto:tobyink@cpan.org> .
 
 #############################################################

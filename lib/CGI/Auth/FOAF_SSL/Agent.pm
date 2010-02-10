@@ -2,7 +2,7 @@ package CGI::Auth::FOAF_SSL::Agent;
 
 use base 'CGI::Auth::FOAF_SSL::CertifiedThing';
 
-our $VERSION = '1.00_00';
+our $VERSION = '1.00_01';
 
 sub name
 {

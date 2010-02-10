@@ -17,7 +17,7 @@
   </rdf:Description>
   <Version rdf:about="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_0_01">
     <dc:issued rdf:datatype="http://www.w3.org/2001/XMLSchema#date">2009-02-05</dc:issued>
-    <file-release rdf:resource="http://backpan.perl.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.01.tar.gz"/>
+    <file-release rdf:resource="http://backpan.cpan.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.01.tar.gz"/>
     <revision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">0.01</revision>
     <rdfs:label xml:lang="en">First release</rdfs:label>
   </Version>
@@ -38,7 +38,7 @@
       </rdf:Description>
     </dcs:changeset>
     <dc:issued rdf:datatype="http://www.w3.org/2001/XMLSchema#date">2009-02-19</dc:issued>
-    <file-release rdf:resource="http://backpan.perl.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.02.tar.gz"/>
+    <file-release rdf:resource="http://backpan.cpan.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.02.tar.gz"/>
     <revision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">0.02</revision>
   </Version>
   <Version rdf:about="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_0_03">
@@ -58,7 +58,7 @@
       </rdf:Description>
     </dcs:changeset>
     <dc:issued rdf:datatype="http://www.w3.org/2001/XMLSchema#date">2009-03-01</dc:issued>
-    <file-release rdf:resource="http://backpan.perl.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.03.tar.gz"/>
+    <file-release rdf:resource="http://backpan.cpan.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.03.tar.gz"/>
     <revision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">0.03</revision>
   </Version>
   <Version rdf:about="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_0_04">
@@ -78,7 +78,7 @@
       </rdf:Description>
     </dcs:changeset>
     <dc:issued rdf:datatype="http://www.w3.org/2001/XMLSchema#date">2009-03-01</dc:issued>
-    <file-release rdf:resource="http://backpan.perl.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.04.tar.gz"/>
+    <file-release rdf:resource="http://backpan.cpan.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.04.tar.gz"/>
     <revision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">0.04</revision>
   </Version>
   <Version rdf:about="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_0_05">
@@ -98,7 +98,7 @@
       </rdf:Description>
     </dcs:changeset>
     <dc:issued rdf:datatype="http://www.w3.org/2001/XMLSchema#date">2009-03-26</dc:issued>
-    <file-release rdf:resource="http://backpan.perl.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.05.tar.gz"/>
+    <file-release rdf:resource="http://backpan.cpan.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.05.tar.gz"/>
     <revision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">0.05</revision>
   </Version>
   <Version rdf:about="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_0_50">
@@ -133,7 +133,7 @@
       </rdf:Description>
     </dcs:changeset>
     <dc:issued rdf:datatype="http://www.w3.org/2001/XMLSchema#date">2009-12-14</dc:issued>
-    <file-release rdf:resource="http://backpan.perl.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.50.tar.gz"/>
+    <file-release rdf:resource="http://backpan.cpan.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.50.tar.gz"/>
     <revision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">0.50</revision>
     <rdfs:label xml:lang="en">Trine Edition</rdfs:label>
   </Version>
@@ -154,7 +154,7 @@
       </rdf:Description>
     </dcs:changeset>
     <dc:issued rdf:datatype="http://www.w3.org/2001/XMLSchema#date">2009-12-15</dc:issued>
-    <file-release rdf:resource="http://backpan.perl.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.51.tar.gz"/>
+    <file-release rdf:resource="http://backpan.cpan.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.51.tar.gz"/>
     <revision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">0.51</revision>
   </Version>
   <Version rdf:about="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_0_52">
@@ -174,7 +174,7 @@
       </rdf:Description>
     </dcs:changeset>
     <dc:issued rdf:datatype="http://www.w3.org/2001/XMLSchema#date">2009-12-16</dc:issued>
-    <file-release rdf:resource="http://backpan.perl.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.52.tar.gz"/>
+    <file-release rdf:resource="http://backpan.cpan.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.52.tar.gz"/>
     <revision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">0.52</revision>
   </Version>
   <Version rdf:about="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_1_00_00">
@@ -209,8 +209,23 @@
       </rdf:Description>
     </dcs:changeset>
     <dc:issued rdf:datatype="http://www.w3.org/2001/XMLSchema#date">2010-02-05</dc:issued>
-    <file-release rdf:resource="http://backpan.perl.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-1.00_00.tar.gz"/>
-    <revision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">0.52</revision>
+    <file-release rdf:resource="http://backpan.cpan.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-1.00_00.tar.gz"/>
+    <revision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">1.00_00</revision>
+  </Version>
+  <Version rdf:about="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_1_00_01">
+    <dcs:changeset>
+      <rdf:Description>
+        <dcs:item>
+          <rdf:Description>
+            <rdfs:label xml:lang="en">Documentation improvements</rdfs:label>
+          </rdf:Description>
+        </dcs:item>
+        <dcs:versus rdf:resource="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_1_00_00"/>
+      </rdf:Description>
+    </dcs:changeset>
+    <dc:issued rdf:datatype="http://www.w3.org/2001/XMLSchema#date">2010-02-10</dc:issued>
+    <file-release rdf:resource="http://backpan.cpan.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-1.00_01.tar.gz"/>
+    <revision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">1.00_01</revision>
   </Version>
   <Project rdf:about="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#project">
     <bug-database rdf:resource="http://rt.cpan.org/Dist/Display.html?Queue=CGI-Auth-FOAF_SSL"/>
@@ -242,6 +257,7 @@
   </Project>
   <foaf:Person rdf:about="http://tobyinkster.co.uk/#i">
     <foaf:homepage rdf:resource="http://tobyinkster.co.uk/"/>
+    <foaf:mbox rdf:resource="mailto:tobyink@cpan.org"/>
     <foaf:name>Toby Inkster</foaf:name>
     <foaf:page rdf:resource="http://search.cpan.org/~tobyink/"/>
   </foaf:Person>

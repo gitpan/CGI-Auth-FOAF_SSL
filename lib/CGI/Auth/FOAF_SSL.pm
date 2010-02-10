@@ -4,15 +4,9 @@ use 5.008;
 use strict;
 use warnings;
 
-our $VERSION = '1.00_00';
-
 =head1 NAME
 
 CGI::Auth::FOAF_SSL - authentication using FOAF+SSL
-
-=head1 VERSION
-
-1.00_00
 
 =head1 SYNOPSIS
 
@@ -40,6 +34,14 @@ CGI::Auth::FOAF_SSL - authentication using FOAF+SSL
   {
     print "<p>Greetings stranger!</p>\n";
   }
+
+=head1 VERSION
+
+1.00_01
+
+=cut
+
+our $VERSION = '1.00_01';
 
 =head1 DESCRIPTION
 
@@ -760,17 +762,22 @@ Please report any bugs to L<http://rt.cpan.org/>.
 
 =head1 SEE ALSO
 
+Helper modules:
 L<CGI::Auth::FOAF_SSL::CertifiedThing>,
 L<CGI::Auth::FOAF_SSL::Agent>,
 L<CGI::Auth::FOAF_SSL::OnlineAccount>.
 
+Related modules:
+L<CGI>, L<RDF::Trine>, L<RDF::ACL>.
+
+Information about FOAF+SSL:
 L<http://lists.foaf-project.org/mailman/listinfo/foaf-protocols>,
 L<http://esw.w3.org/topic/foaf+ssl>.
 
-L<CGI>, L<RDF::Trine>.
-
+SSL in Apache:
 L<http://httpd.apache.org/docs/2.0/mod/mod_ssl.html>.
 
+Mailing list for general Perl RDF/SemWeb discussion and support:
 L<http://www.perlrdf.org/>.
 
 =head1 AUTHOR
