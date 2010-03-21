@@ -28,7 +28,7 @@ SYNOPSIS
       }
 
 VERSION
-    1.00_01
+    1.00_02
 
 DESCRIPTION
     FOAF+SSL is a simple authentication scheme described at

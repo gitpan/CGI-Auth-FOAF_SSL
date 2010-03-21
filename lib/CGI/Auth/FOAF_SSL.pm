@@ -37,11 +37,11 @@ CGI::Auth::FOAF_SSL - authentication using FOAF+SSL
 
 =head1 VERSION
 
-1.00_01
+1.00_02
 
 =cut
 
-our $VERSION = '1.00_01';
+our $VERSION = '1.00_02';
 
 =head1 DESCRIPTION
 
@@ -203,25 +203,7 @@ sub new_smiple
 	while (<READ>)
 	{
 		$exponent_line = $_ if (/^                Exponent: /);
-		if ($opts->{'check_netscape_cert_type'})
-		{
-			last if (/^            Netscape Cert Type:/);
-		}
-		else
-		{
-			last if (/^            X509v3 Subject Alternative Name:/);
-		}
-	}
-	if ($opts->{'check_netscape_cert_type'})
-	{
-		my $usages = <READ>;
-		$usages =~ s/(^\s*|\s*\r?\n?$)//g;
-		while (<READ>)
-			{ last if (/^            X509v3 Subject Alternative Name:/); }
-	
-		# Unless certificate is specifically allowed to be used for HTTPS, then
-		# reject it.
-		return unless $usages =~ /SSL Client/i;
+		last if (/^            X509v3 Subject Alternative Name:/);
 	}
 	my $alt_name = <READ>; 
 	$alt_name =~ s/(^\s*|\s*\r?\n?$)//g;
@@ -256,6 +238,8 @@ sub new_smiple
 	bless $rv, $class;
 }
 
+##TODO: verify_certificate_by_XXX functions duplicate a tonne of code.
+
 sub verify_certificate_by_uri
 {
 	my $rv  = shift;
@@ -265,48 +249,73 @@ sub verify_certificate_by_uri
 	
 	my $query_string = sprintf("PREFIX cert: <http://www.w3.org/ns/auth/cert#> "
 	                          ."PREFIX rsa: <http://www.w3.org/ns/auth/rsa#> "
-	                          ."SELECT ?decExponent ?hexModulus "
+	                          ."SELECT ?modulus ?exponent ?decExponent ?hexModulus "
 	                          ."WHERE "
 	                          ."{ "
 	                          ."    ?key "
 	                          ."        cert:identity <%s> ; "
-	                          ."        rsa:modulus [ cert:hex ?hexModulus ] ; "
-	                          ."        rsa:public_exponent [ cert:decimal ?decExponent ] . "
+	                          ."        rsa:modulus ?modulus ; "
+	                          ."        rsa:public_exponent ?exponent . "
+	                          ."    OPTIONAL { ?modulus cert:hex ?hexModulus . } "
+	                          ."    OPTIONAL { ?exponent cert:decimal ?decExponent . } "
+	                          ."    OPTIONAL { ?exponent cert:int ?decExponent . } "
 	                          ."}",
 	                          $uri);
 	my $query   = RDF::Query->new($query_string, $uri);
 	my $results = $query->execute($model);
 	
-	if (my $row = $results->next)
+	while (my $row = $results->next)
 	{
-		$rv->{'correct_cert_exponent_dec'} = $row->{'decExponent'}->literal_value;
-		$rv->{'correct_cert_modulus_hex'}  = $row->{'hexModulus'}->literal_value;
-	}
-	
-	return 0
-		unless $rv->{'correct_cert_modulus_hex'} && $rv->{'correct_cert_exponent_dec'};
-	
-	$rv->{'correct_cert_exponent_dec'} =~ s/[^0-9-]//ig;
-	$rv->{'correct_cert_modulus_hex'}  =~ s/[^A-Z0-9]//ig;
-	$rv->{'correct_cert_modulus_hex'}  = uc($rv->{'correct_cert_modulus_hex'});
-	
-	while (length $rv->{'correct_cert_modulus_hex'} < length $rv->{'cert_modulus_hex'})
-		{ $rv->{'correct_cert_modulus_hex'} = '0' . $rv->{'correct_cert_modulus_hex'}; }
-	
-	while (length $rv->{'correct_cert_modulus_hex'} > length $rv->{'cert_modulus_hex'})
-		{ $rv->{'cert_modulus_hex'} = '0' . $rv->{'cert_modulus_hex'}; }
-	
-	if (($rv->{'correct_cert_modulus_hex'} eq $rv->{'cert_modulus_hex'})
-	&&  ($rv->{'correct_cert_exponent_dec'} == $rv->{'cert_exponent_dec'}))
-	{
-		$rv->{'validation'} = 'cert';
-		delete $rv->{'correct_cert_exponent_dec'};
-		delete $rv->{'correct_cert_modulus_hex'};
+		my $correct_cert_modulus_hex  = undef;
+		my $correct_cert_exponent_dec = undef;
 		
-		$rv->{'cert_subject_uri'}   = $uri;
-		$rv->{'cert_subject_model'} = $model;
+		if (defined $row->{'modulus'} && $row->{'modulus'}->is_literal)
+		{
+			$correct_cert_modulus_hex = $row->{'modulus'}->literal_value;
+		}
+		elsif (defined $row->{'hexModulus'} && $row->{'hexModulus'}->is_literal)
+		{
+			$correct_cert_modulus_hex = $row->{'hexModulus'}->literal_value;
+		}
 		
-		return 1;
+		if (defined $row->{'exponent'} && $row->{'exponent'}->is_literal)
+		{
+			$correct_cert_exponent_dec = $row->{'exponent'}->literal_value;
+		}
+		elsif (defined $row->{'decExponent'} && $row->{'decExponent'}->is_literal)
+		{
+			$correct_cert_exponent_dec = $row->{'decExponent'}->literal_value;
+		}
+		
+		next
+			unless defined $correct_cert_modulus_hex && defined $correct_cert_exponent_dec;
+		
+		$rv->{'correct_cert_exponent_dec'} = $correct_cert_exponent_dec;
+		$rv->{'correct_cert_exponent_dec'} =~ s/[^0-9-]//ig;
+		
+		$rv->{'correct_cert_modulus_hex'}  = $correct_cert_modulus_hex;
+		$rv->{'correct_cert_modulus_hex'}  =~ s/[^A-Z0-9]//ig;
+		$rv->{'correct_cert_modulus_hex'}  = uc($rv->{'correct_cert_modulus_hex'});
+		
+		while (length $rv->{'correct_cert_modulus_hex'} < length $rv->{'cert_modulus_hex'})
+			{ $rv->{'correct_cert_modulus_hex'} = '0' . $rv->{'correct_cert_modulus_hex'}; }
+		
+		while (length $rv->{'correct_cert_modulus_hex'} > length $rv->{'cert_modulus_hex'})
+			{ $rv->{'cert_modulus_hex'} = '0' . $rv->{'cert_modulus_hex'}; }
+		
+		if (($rv->{'correct_cert_modulus_hex'} eq $rv->{'cert_modulus_hex'})
+		&&  ($rv->{'correct_cert_exponent_dec'} == $rv->{'cert_exponent_dec'}))
+		{
+			$rv->{'validation'} = 'cert';
+			delete $rv->{'correct_cert_exponent_dec'};
+			delete $rv->{'correct_cert_modulus_hex'};
+			
+			$rv->{'cert_subject_uri'}   = $uri;
+			$rv->{'cert_subject_model'} = $model;
+			
+			return 1;
+		}
+	
 	}
 	
 	return 0;
@@ -324,46 +333,75 @@ sub verify_certificate_by_email
 	
 	my $query_string = sprintf("PREFIX cert: <http://www.w3.org/ns/auth/cert#> "
 	                          ."PREFIX rsa: <http://www.w3.org/ns/auth/rsa#> "
-	                          ."SELECT ?decExponent ?hexModulus "
+	                          ."SELECT ?modulus ?exponent ?decExponent ?hexModulus "
 	                          ."WHERE "
 	                          ."{ "
 	                          ."    ?key "
 	                          ."        cert:identity <%s> ; "
-	                          ."        rsa:modulus [ cert:hex ?hexModulus ] ; "
-	                          ."        rsa:public_exponent [ cert:decimal ?decExponent ] . "
+	                          ."        rsa:modulus ?modulus ; "
+	                          ."        rsa:public_exponent ?exponent . "
+	                          ."    OPTIONAL { ?modulus cert:hex ?hexModulus . } "
+	                          ."    OPTIONAL { ?exponent cert:decimal ?decExponent . } "
+	                          ."    OPTIONAL { ?exponent cert:int ?decExponent . } "
 	                          ."}",
 	                          $fp->webid);
 	
 	my $query   = RDF::Query::Client->new($query_string);
 	my $results = $query->execute($fp->endpoint, {QueryMethod=>'POST'});
 	
-	if (my $row = $results->next)
+	while (my $row = $results->next)
 	{
-		$rv->{'correct_cert_exponent_dec'} = $row->{'decExponent'}->literal_value;
-		$rv->{'correct_cert_modulus_hex'}  = $row->{'hexModulus'}->literal_value;
-	}
-	
-	return 0
-		unless $rv->{'correct_cert_modulus_hex'} && $rv->{'correct_cert_exponent_dec'};
-	
-	$rv->{'correct_cert_exponent_dec'} =~ s/[^0-9]//ig;
-	$rv->{'correct_cert_modulus_hex'}  =~ s/[^A-Z0-9]//ig;
-	$rv->{'correct_cert_modulus_hex'}  = uc($rv->{'correct_cert_modulus_hex'});
-	
-	if (($rv->{'correct_cert_modulus_hex'} eq $rv->{'cert_modulus_hex'})
-	&&  ($rv->{'correct_cert_exponent_dec'} == $rv->{'cert_exponent_dec'}))
-	{
-		$rv->{'validation'} = 'cert';
-		delete $rv->{'correct_cert_exponent_dec'};
-		delete $rv->{'correct_cert_modulus_hex'};
+		my $correct_cert_modulus_hex  = undef;
+		my $correct_cert_exponent_dec = undef;
 		
-		$rv->{'cert_subject_uri'}         = $fp->webid;
-		$rv->{'cert_subject_endpoint'}    = $fp->endpoint;
-		$rv->{'cert_subject_fingerpoint'} = $fp;
+		if (defined $row->{'modulus'} && $row->{'modulus'}->is_literal)
+		{
+			$correct_cert_modulus_hex = $row->{'modulus'}->literal_value;
+		}
+		elsif (defined $row->{'hexModulus'} && $row->{'hexModulus'}->is_literal)
+		{
+			$correct_cert_modulus_hex = $row->{'hexModulus'}->literal_value;
+		}
 		
-		return 1;
+		if (defined $row->{'exponent'} && $row->{'exponent'}->is_literal)
+		{
+			$correct_cert_exponent_dec = $row->{'exponent'}->literal_value;
+		}
+		elsif (defined $row->{'decExponent'} && $row->{'decExponent'}->is_literal)
+		{
+			$correct_cert_exponent_dec = $row->{'decExponent'}->literal_value;
+		}
+		
+		next
+			unless defined $correct_cert_modulus_hex && defined $correct_cert_exponent_dec;
+		
+		$rv->{'correct_cert_exponent_dec'} = $correct_cert_exponent_dec;
+		$rv->{'correct_cert_exponent_dec'} =~ s/[^0-9-]//ig;
+		
+		$rv->{'correct_cert_modulus_hex'}  = $correct_cert_modulus_hex;
+		$rv->{'correct_cert_modulus_hex'}  =~ s/[^A-Z0-9]//ig;
+		$rv->{'correct_cert_modulus_hex'}  = uc($rv->{'correct_cert_modulus_hex'});
+		
+		while (length $rv->{'correct_cert_modulus_hex'} < length $rv->{'cert_modulus_hex'})
+			{ $rv->{'correct_cert_modulus_hex'} = '0' . $rv->{'correct_cert_modulus_hex'}; }
+		
+		while (length $rv->{'correct_cert_modulus_hex'} > length $rv->{'cert_modulus_hex'})
+			{ $rv->{'cert_modulus_hex'} = '0' . $rv->{'cert_modulus_hex'}; }
+		
+		if (($rv->{'correct_cert_modulus_hex'} eq $rv->{'cert_modulus_hex'})
+		&&  ($rv->{'correct_cert_exponent_dec'} == $rv->{'cert_exponent_dec'}))
+		{
+			$rv->{'validation'} = 'cert';
+			delete $rv->{'correct_cert_exponent_dec'};
+			delete $rv->{'correct_cert_modulus_hex'};
+			
+			$rv->{'cert_subject_uri'}         = $fp->webid;
+			$rv->{'cert_subject_endpoint'}    = $fp->endpoint;
+			$rv->{'cert_subject_fingerpoint'} = $fp;
+			
+			return 1;
+		}
 	}
-	
 	return 0;
 }
 

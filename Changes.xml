@@ -227,6 +227,21 @@
     <file-release rdf:resource="http://backpan.cpan.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-1.00_01.tar.gz"/>
     <revision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">1.00_01</revision>
   </Version>
+  <Version rdf:about="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_1_00_02">
+    <dcs:changeset>
+      <rdf:Description>
+        <dcs:item>
+          <dcs:Update>
+            <rdfs:label xml:lang="en">The rsa and cert vocabularies have been changed recently.</rdfs:label>
+          </dcs:Update>
+        </dcs:item>
+        <dcs:versus rdf:resource="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_1_00_01"/>
+      </rdf:Description>
+    </dcs:changeset>
+    <dc:issued rdf:datatype="http://www.w3.org/2001/XMLSchema#date">2010-03-21</dc:issued>
+    <file-release rdf:resource="http://backpan.cpan.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-1.00_02.tar.gz"/>
+    <revision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">1.00_02</revision>
+  </Version>
   <Project rdf:about="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#project">
     <bug-database rdf:resource="http://rt.cpan.org/Dist/Display.html?Queue=CGI-Auth-FOAF_SSL"/>
     <created rdf:datatype="http://www.w3.org/2001/XMLSchema#date">2009-02-05</created>
@@ -247,6 +262,8 @@
     <release rdf:resource="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_0_51"/>
     <release rdf:resource="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_0_52"/>
     <release rdf:resource="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_1_00_00"/>
+    <release rdf:resource="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_1_00_01"/>
+    <release rdf:resource="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_1_00_02"/>
     <repository>
       <SVNRepository>
         <browse rdf:resource="http://goddamn.co.uk/viewvc/perlmods/CGI-Auth-FOAF_SSL/"/>

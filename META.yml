@@ -33,4 +33,4 @@ resources:
   homepage: http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/
   license: http://dev.perl.org/licenses/
   repository: http://goddamn.co.uk/viewvc/perlmods/CGI-Auth-FOAF_SSL/
-version: 1.00_01
+version: 1.00_02

@@ -10,6 +10,12 @@ Home page:    <http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/>
 Bug tracker:  <http://rt.cpan.org/Dist/Display.html?Queue=CGI-Auth-FOAF_SSL>
 Maintainer:   Toby Inkster <mailto:tobyink@cpan.org>
 
+1.00_02 [2010-03-21]
+ - (Update) The rsa and cert vocabularies have been changed recently.
+
+1.00_01 [2010-02-10]
+ - Documentation improvements
+
 1.00_00 [2010-02-05]
 
 0.52 [2009-12-16]

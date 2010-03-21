@@ -150,6 +150,17 @@ my:v_1_00_01
 			[ rdfs:label "Documentation improvements"@en ]
 		] .
 
+my:v_1_00_02
+	a               :Version ;
+	dc:issued       "2010-03-21"^^xsd:date ;
+	:revision       "1.00_02"^^xsd:string ;
+	:file-release   <http://backpan.cpan.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-1.00_02.tar.gz> ;
+	dcs:changeset [
+		dcs:versus my:v_1_00_01 ;
+		dcs:item
+			[ rdfs:label "The rsa and cert vocabularies have been changed recently."@en ; a dcs:Update ]
+		] .
+
 #############################################################
 
 my:project
@@ -170,7 +181,7 @@ my:project
 	:license        <http://dev.perl.org/licenses/> ;
 	:release        my:v_0_01 , my:v_0_02 , my:v_0_03 , my:v_0_04 , my:v_0_05 ,
 	                my:v_0_50 , my:v_0_51 , my:v_0_52 ,
-	                my:v_1_00_00 .
+	                my:v_1_00_00 , my:v_1_00_01 , my:v_1_00_02 .
 
 #############################################################
 
