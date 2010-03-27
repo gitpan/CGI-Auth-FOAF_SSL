@@ -37,11 +37,11 @@ CGI::Auth::FOAF_SSL - authentication using FOAF+SSL
 
 =head1 VERSION
 
-1.00_02
+1.00_03
 
 =cut
 
-our $VERSION = '1.00_02';
+our $VERSION = '1.00_03';
 
 =head1 DESCRIPTION
 
@@ -76,6 +76,7 @@ use Encode qw(encode_utf8);
 use File::Spec;
 use IPC::Open2;
 use LWP::UserAgent;
+use Math::BigInt try=>'GMP';
 use RDF::TrineShortcuts 0.05;
 use WWW::Finger 0.03;
 
@@ -114,34 +115,35 @@ You probably want to use C<new_from_cgi> instead.
 
 sub new
 {
-	my $rv = new_smiple(@_);
+	my $class = shift;
+	my $self  = $class->new_unauthenticated(@_);
 	
-	return undef unless $rv;
+	return undef unless $self;
 	
 	my $verified = 0;
-	if (defined $rv->{'subject_alt_names'}->{'URI'})
+	if (defined $self->{'subject_alt_names'}->{'URI'})
 	{
-		foreach my $uri (@{ $rv->{'subject_alt_names'}->{'URI'} })
+		foreach my $uri (@{ $self->{'subject_alt_names'}->{'URI'} })
 		{
-			$verified = $rv->verify_certificate_by_uri($uri);
+			$verified = $self->authenticate_by_uri($uri);
 			last if $verified;
 		}
 	}
 	
-	if (defined $rv->{'subject_alt_names'}->{'EMAIL'}
+	if (defined $self->{'subject_alt_names'}->{'EMAIL'}
 	and !$verified)
 	{
-		foreach my $e (@{ $rv->{'subject_alt_names'}->{'EMAIL'} })
+		foreach my $e (@{ $self->{'subject_alt_names'}->{'EMAIL'} })
 		{
-			$verified = $rv->verify_certificate_by_email($e);
+			$verified = $self->authenticate_by_email($e);
 			last if $verified;
 		}
 	}
 	
-	$rv->load_personal_info
+	$self->load_personal_info
 		if $verified;
 	
-	return $rv;
+	return $self;
 }
 
 =item C<< $auth = CGI::Auth::FOAF_SSL->new_from_cgi($cgi_object) >>
@@ -170,12 +172,21 @@ sub new_from_cgi
 	return $class->new($cert);
 }
 
-sub new_smiple
+=item C<< $auth = CGI::Auth::FOAF_SSL->new_unauthenticated($pem_encoded) >>
+
+Creates a CGI::Auth::FOAF_SSL object without doing any authentication.
+
+It's very unlikely you want to do this. If you do create an unauthenticated
+object, then you'll probably want to do some authentication using the
+authenticate_by_XXX methods.
+
+=cut
+
+sub new_unauthenticated
 {
 	my $class = shift;
 	my $cert  = shift;
-	my $opts  = shift;
-	my $rv    = {};
+	my $self  = {};
 	
 	# Only client certificate secured connections allowed.
 	return unless $cert; 
@@ -211,13 +222,13 @@ sub new_smiple
 	close WRITE;
 	
 	# Only allow FOAF+SSL certificates.
-	$rv->{'subject_alt_names'} = {};
+	$self->{'subject_alt_names'} = {};
 	while ($alt_name =~ /(?:\s|\,|^)(URI|email):([^\s\,]+)(?:\s|\,|$)/ig)
 	{
-		push @{ $rv->{'subject_alt_names'}->{uc $1} }, $2;
+		push @{ $self->{'subject_alt_names'}->{uc $1} }, $2;
 	}
 	
-	return unless $rv->{'subject_alt_names'};
+	return undef unless $self->{'subject_alt_names'};
 	
 	# Modulus.
 	$pid = 0;
@@ -228,24 +239,200 @@ sub new_smiple
 	close READ;
 	close WRITE;
 	return unless $response =~ /^Modulus=([0-9A-F]+)$/i;
-	$rv->{'cert_modulus_hex'} = $1;
+	$self->{'cert_modulus_hex'} = $1;
 	
 	# Exponent.
 	return unless $exponent_line =~ /Exponent: (\d+) \(0x([0-9A-F]+)\)/i;
-	$rv->{'cert_exponent_dec'} = $1;
-	$rv->{'cert_exponent_hex'} = $2;	
+	$self->{'cert_exponent_dec'} = $1;
+	$self->{'cert_exponent_hex'} = $2;
 	
-	bless $rv, $class;
+	bless $self, $class;
+	
+	$self->_calculate_modulus_and_exponent_bigints;
+	
+	return $self;
 }
 
-##TODO: verify_certificate_by_XXX functions duplicate a tonne of code.
-
-sub verify_certificate_by_uri
+sub _calculate_modulus_and_exponent_bigints
 {
-	my $rv  = shift;
-	my $uri = shift;
+	my $self = shift;
 	
-	my $model = $rv->get_trine_model($uri);
+	foreach my $part (qw(exponent modulus))
+	{
+		if ($self->{"cert_${part}_dec"})
+		{
+			my $dec = $self->{"cert_${part}_dec"};
+			$dec =~ s/[^0-9]//g;
+			$self->{"cert_${part}"} = Math::BigInt->new($dec);
+		}
+		elsif ($self->{"cert_${part}_hex"})
+		{
+			my $hex = $self->{"cert_${part}_hex"};
+			$hex =~ s/[^0-9A-F]//ig;
+			$self->{"cert_${part}"} = Math::BigInt->from_hex("0x$hex");
+		}
+	}
+}
+
+=back
+
+=head2 Public Methods
+
+=over 4
+
+=item C<< $bool = $auth->is_secure >>
+
+Returns true iff the authentication process was completely successful.
+
+What does it mean for the authentication process to have been partially
+successful? There are two such situations:
+
+=over 4
+
+=item * The rdf:type of the URI given in subjectAltName could not be established.
+
+Perhaps no RDF could be found which provides an rdf:type for the URI,
+or if an rdf:type is found, it is one that this module does not
+recognise.
+
+=item * The subjectAltName URI is established to be a foaf:OnlineAccount, but no account holder is confirmed.
+
+To confirm that the account in question belongs to someone, the
+RDF data associated with the account must provide the URI of an
+account holder. Whatsmore the RDF data associated with the account
+holder's URI must confirm that the account really does belong to
+them.
+
+This means that when dereferencing the subjectAltName and finding
+that it identifies an account I<?account>, the data must provide
+the following triples:
+
+  ?webid foaf:account ?account .
+  ?account a foaf:OnlineAccount .
+
+And when I<?webid> is dereferenced, it must also provide this triple:
+
+  ?webid foaf:account ?account .
+
+=back
+
+In either of these two situations, it is probably not safe to trust
+any data you get back from the C<agent>, C<account> or C<certified_thing>
+methods (except perhaps C<< $auth->certified_thing->identity >>).
+
+=cut
+
+sub is_secure
+{
+	my $this = shift;
+	return $this->{'validation'} eq 'agent';
+}
+
+=item C<< $agent = $auth->agent >>
+
+Returns a L<CGI::Auth::FOAF_SSL::Agent> object which represents the agent
+making the request. Occasionally undef.
+
+=cut
+
+sub agent
+{
+	my $this = shift;
+	return $this->{'agent'};
+}
+
+=item C<< $account = $auth->account >>
+
+Returns a L<CGI::Auth::FOAF_SSL::OnlineAccount> object which represents
+the online account of the agent making the request. Usually undef.
+
+=cut
+
+sub account
+{
+	my $this = shift;
+	return $this->{'account'};
+}
+
+=item C<< $thing = $auth->certified_thing >>
+
+Returns a L<CGI::Auth::FOAF_SSL::CertifiedThing> object (or a descendent class)
+which represents the thing given in the certificate's subjectAltName.
+
+Usually you will want to use C<agent> or C<account> instead.
+
+=cut
+
+sub certified_thing
+{
+	my $this = shift;
+	return $this->{'thing'};
+}
+
+=item C<< $cookie = $auth->cookie >>
+
+HTTP cookie related to the authentication process. Sending this to the
+client isn't strictly necessary, but it allows for a session to be
+established, greatly speeding up subsequent accesses. See also the
+COOKIES section of this documentation.
+
+=cut
+
+sub cookie
+{
+	my $this = shift;
+	return $this->{'session'}->cookie;
+}
+
+=item C<< $ok = $auth->authenticate_by_uri($uri) >>
+
+Checks if $uri claims that $auth's key identifies it.
+
+This is only relevent if you constructed $auth using C<new_unauthenticated>.
+
+=cut
+
+sub authenticate_by_uri
+{
+	my $self  = shift;
+	my $uri   = shift;
+	my $model = $self->get_trine_model($uri);
+	
+	return $self->authenticate_by_sparql($uri, $model);
+}
+
+=item C<< $ok = $auth->authenticate_by_email($email_address) >>
+
+Checks if $email_address claims that $auth's key identifies it
+(via WebFinger/Fingerpoint).
+
+This is only relevent if you constructed $auth using C<new_unauthenticated>.
+
+=cut
+
+sub authenticate_by_email
+{
+	my $self  = shift;
+	my $email = shift;
+	my $fp    = WWW::Finger->new($email);
+	
+	return 0 unless defined $fp->endpoint and defined $fp->webid;
+	
+	return $self->authenticate_by_sparql($fp->webid, $fp->endpoint, $fp);
+}
+
+=item C<< $ok = $auth->authenticate_by_sparql($uri, $endpoint) >>
+
+Checks if $endpoint claims that $auth's key identifies $uri. $endpoint may be
+a SPARQL endpoint URI or an RDF::Trine::Model.
+
+This is only relevent if you constructed $auth using C<new_unauthenticated>.
+
+=cut
+
+sub authenticate_by_sparql
+{
+	my ($self, $uri, $model, $fp) = @_;
 	
 	my $query_string = sprintf("PREFIX cert: <http://www.w3.org/ns/auth/cert#> "
 	                          ."PREFIX rsa: <http://www.w3.org/ns/auth/rsa#> "
@@ -258,169 +445,40 @@ sub verify_certificate_by_uri
 	                          ."        rsa:public_exponent ?exponent . "
 	                          ."    OPTIONAL { ?modulus cert:hex ?hexModulus . } "
 	                          ."    OPTIONAL { ?exponent cert:decimal ?decExponent . } "
-	                          ."    OPTIONAL { ?exponent cert:int ?decExponent . } "
 	                          ."}",
 	                          $uri);
-	my $query   = RDF::Query->new($query_string, $uri);
-	my $results = $query->execute($model);
+	my $results = rdf_query($query_string, $model);
 	
-	while (my $row = $results->next)
+	RESULT: while (my $result = $results->next)
 	{
-		my $correct_cert_modulus_hex  = undef;
-		my $correct_cert_exponent_dec = undef;
-		
-		if (defined $row->{'modulus'} && $row->{'modulus'}->is_literal)
-		{
-			$correct_cert_modulus_hex = $row->{'modulus'}->literal_value;
-		}
-		elsif (defined $row->{'hexModulus'} && $row->{'hexModulus'}->is_literal)
-		{
-			$correct_cert_modulus_hex = $row->{'hexModulus'}->literal_value;
-		}
-		
-		if (defined $row->{'exponent'} && $row->{'exponent'}->is_literal)
-		{
-			$correct_cert_exponent_dec = $row->{'exponent'}->literal_value;
-		}
-		elsif (defined $row->{'decExponent'} && $row->{'decExponent'}->is_literal)
-		{
-			$correct_cert_exponent_dec = $row->{'decExponent'}->literal_value;
-		}
-		
-		next
-			unless defined $correct_cert_modulus_hex && defined $correct_cert_exponent_dec;
-		
-		$rv->{'correct_cert_exponent_dec'} = $correct_cert_exponent_dec;
-		$rv->{'correct_cert_exponent_dec'} =~ s/[^0-9-]//ig;
-		
-		$rv->{'correct_cert_modulus_hex'}  = $correct_cert_modulus_hex;
-		$rv->{'correct_cert_modulus_hex'}  =~ s/[^A-Z0-9]//ig;
-		$rv->{'correct_cert_modulus_hex'}  = uc($rv->{'correct_cert_modulus_hex'});
-		
-		while (length $rv->{'correct_cert_modulus_hex'} < length $rv->{'cert_modulus_hex'})
-			{ $rv->{'correct_cert_modulus_hex'} = '0' . $rv->{'correct_cert_modulus_hex'}; }
-		
-		while (length $rv->{'correct_cert_modulus_hex'} > length $rv->{'cert_modulus_hex'})
-			{ $rv->{'cert_modulus_hex'} = '0' . $rv->{'cert_modulus_hex'}; }
-		
-		if (($rv->{'correct_cert_modulus_hex'} eq $rv->{'cert_modulus_hex'})
-		&&  ($rv->{'correct_cert_exponent_dec'} == $rv->{'cert_exponent_dec'}))
-		{
-			$rv->{'validation'} = 'cert';
-			delete $rv->{'correct_cert_exponent_dec'};
-			delete $rv->{'correct_cert_modulus_hex'};
+		my $correct_modulus  = $self->make_bigint_from_node(
+			$result->{'modulus'},  fallback => $result->{'hexModulus'},  fallback_type=>'hex');
 			
-			$rv->{'cert_subject_uri'}   = $uri;
-			$rv->{'cert_subject_model'} = $model;
-			
-			return 1;
+		my $correct_exponent = $self->make_bigint_from_node(
+			$result->{'exponent'}, fallback => $result->{'decExponent'}, fallback_type=>'dec');
+
+		next RESULT unless $correct_modulus  == $self->{'cert_modulus'};
+		next RESULT unless $correct_exponent == $self->{'cert_exponent'};
+
+		$self->{'validation'}       = 'cert';
+		$self->{'cert_subject_uri'} = $uri;
+		
+		if (ref $model && $model->isa('RDF::Trine::Model'))
+		{
+			$self->{'cert_subject_model'} = $model;
 		}
-	
+		else
+		{
+			$self->{'cert_subject_uri'}         = $uri;
+			$self->{'cert_subject_endpoint'}    = $model;
+			$self->{'cert_subject_fingerpoint'} = $fp
+				if defined $fp;
+		}
+		
+		return 1;
 	}
 	
 	return 0;
-}
-
-sub verify_certificate_by_email
-{
-	my $rv    = shift;
-	my $email = shift;
-	
-	my $fp = WWW::Finger->new($email);
-	
-	return 0
-		unless defined $fp->endpoint and defined $fp->webid;
-	
-	my $query_string = sprintf("PREFIX cert: <http://www.w3.org/ns/auth/cert#> "
-	                          ."PREFIX rsa: <http://www.w3.org/ns/auth/rsa#> "
-	                          ."SELECT ?modulus ?exponent ?decExponent ?hexModulus "
-	                          ."WHERE "
-	                          ."{ "
-	                          ."    ?key "
-	                          ."        cert:identity <%s> ; "
-	                          ."        rsa:modulus ?modulus ; "
-	                          ."        rsa:public_exponent ?exponent . "
-	                          ."    OPTIONAL { ?modulus cert:hex ?hexModulus . } "
-	                          ."    OPTIONAL { ?exponent cert:decimal ?decExponent . } "
-	                          ."    OPTIONAL { ?exponent cert:int ?decExponent . } "
-	                          ."}",
-	                          $fp->webid);
-	
-	my $query   = RDF::Query::Client->new($query_string);
-	my $results = $query->execute($fp->endpoint, {QueryMethod=>'POST'});
-	
-	while (my $row = $results->next)
-	{
-		my $correct_cert_modulus_hex  = undef;
-		my $correct_cert_exponent_dec = undef;
-		
-		if (defined $row->{'modulus'} && $row->{'modulus'}->is_literal)
-		{
-			$correct_cert_modulus_hex = $row->{'modulus'}->literal_value;
-		}
-		elsif (defined $row->{'hexModulus'} && $row->{'hexModulus'}->is_literal)
-		{
-			$correct_cert_modulus_hex = $row->{'hexModulus'}->literal_value;
-		}
-		
-		if (defined $row->{'exponent'} && $row->{'exponent'}->is_literal)
-		{
-			$correct_cert_exponent_dec = $row->{'exponent'}->literal_value;
-		}
-		elsif (defined $row->{'decExponent'} && $row->{'decExponent'}->is_literal)
-		{
-			$correct_cert_exponent_dec = $row->{'decExponent'}->literal_value;
-		}
-		
-		next
-			unless defined $correct_cert_modulus_hex && defined $correct_cert_exponent_dec;
-		
-		$rv->{'correct_cert_exponent_dec'} = $correct_cert_exponent_dec;
-		$rv->{'correct_cert_exponent_dec'} =~ s/[^0-9-]//ig;
-		
-		$rv->{'correct_cert_modulus_hex'}  = $correct_cert_modulus_hex;
-		$rv->{'correct_cert_modulus_hex'}  =~ s/[^A-Z0-9]//ig;
-		$rv->{'correct_cert_modulus_hex'}  = uc($rv->{'correct_cert_modulus_hex'});
-		
-		while (length $rv->{'correct_cert_modulus_hex'} < length $rv->{'cert_modulus_hex'})
-			{ $rv->{'correct_cert_modulus_hex'} = '0' . $rv->{'correct_cert_modulus_hex'}; }
-		
-		while (length $rv->{'correct_cert_modulus_hex'} > length $rv->{'cert_modulus_hex'})
-			{ $rv->{'cert_modulus_hex'} = '0' . $rv->{'cert_modulus_hex'}; }
-		
-		if (($rv->{'correct_cert_modulus_hex'} eq $rv->{'cert_modulus_hex'})
-		&&  ($rv->{'correct_cert_exponent_dec'} == $rv->{'cert_exponent_dec'}))
-		{
-			$rv->{'validation'} = 'cert';
-			delete $rv->{'correct_cert_exponent_dec'};
-			delete $rv->{'correct_cert_modulus_hex'};
-			
-			$rv->{'cert_subject_uri'}         = $fp->webid;
-			$rv->{'cert_subject_endpoint'}    = $fp->endpoint;
-			$rv->{'cert_subject_fingerpoint'} = $fp;
-			
-			return 1;
-		}
-	}
-	return 0;
-}
-
-sub _exec_query 
-{
-	my $rv = shift;
-	my $q  = shift;
-	
-	if (defined $rv->{'cert_subject_model'})
-	{
-		my $Q = RDF::Query->new($q);
-		return $Q->execute($rv->{'cert_subject_model'});
-	}
-	
-	if (defined $rv->{'cert_subject_endpoint'})
-	{
-		my $Q = RDF::Query::Client->new($q);
-		return $Q->execute($rv->{'cert_subject_endpoint'}, {QueryMethod=>'POST'});
-	}
 }
 
 sub load_personal_info
@@ -447,7 +505,7 @@ sub load_personal_info
 	                          ."    <%s> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?type . "
 	                          ."}",
 	                          $rv->{'cert_subject_uri'});
-	my $results = $rv->_exec_query( $query_string );
+	my $results = $rv->execute_query( $query_string );
 	
 	RESULT: while (my $row = $results->next)
 	{
@@ -488,7 +546,7 @@ sub load_personal_info
 	if (!defined $rv->{'cert_subject_type'}
 	||  $rv->{'cert_subject_type'} eq 'OnlineAccount')
 	{
-		my $results = $rv->_exec_query(
+		my $results = $rv->execute_query(
 			sprintf('SELECT ?person
 				WHERE {
 					{ <%s> <http://rdfs.org/sioc/ns#account_of> ?person . }
@@ -508,7 +566,7 @@ sub load_personal_info
 	
 	unless (defined $rv->{'cert_subject_type'})
 	{
-		my $results = $rv->_exec_query(
+		my $results = $rv->execute_query(
 			sprintf('ASK
 				WHERE {
 					{ <%s> <http://xmlns.com/foaf/0.1/accountName> ?o . }
@@ -517,7 +575,7 @@ sub load_personal_info
 				$rv->{'cert_subject_uri'}, $rv->{'cert_subject_uri'}),
 			$rv->{'cert_subject_uri'});
 		
-		if ($results->is_boolean && $results->get_boolean)
+		if ($results)
 			{ $rv->{'cert_subject_type'} = 'OnlineAccount'; }
 	}
 	
@@ -582,119 +640,10 @@ sub load_personal_info
 	return 0;
 }
 
-=back
-
-=head2 Public Methods
-
-=over 4
-
-=item C<< $bool = $auth->is_secure >>
-
-Returns true iff the authentication process was completely successful.
-
-What does it mean for the authentication process to have been partially
-successful? There are two such situations:
-
-=over 4
-
-=item * The rdf:type of the URI given in subjectAltName could not be established.
-
-Perhaps no RDF could be found which provides an rdf:type for the URI,
-or if an rdf:type is found, it is one that this module does not
-recognise.
-
-=item * The subjectAltName URI is established to be a foaf:OnlineAccount, but no account holder is confirmed.
-
-To confirm that the account in question belongs to someone, the
-RDF data associated with the account must provide the URI of an
-account holder. Whatsmore the RDF data associated with the account
-holder's URI must confirm that the account really does belong to
-them.
-
-This means that when dereferencing the subjectAltName and finding
-that it identifies an account I<?account>, the data must provide
-the following triples:
-
-  ?webid foaf:account ?account .
-  ?account a foaf:OnlineAccount .
-
-And when I<?webid> is dereferenced, it must also provide this triple:
-
-  ?webid foaf:account ?account .
 
 =back
 
-In either of these two situations, it is probably not safe to trust
-any data you get back from the C<agent>, C<account> or C<certified_thing>
-methods (except perhaps C<< $auth->certified_thing->identity >>).
-
-=cut
-
-sub is_secure
-{
-	my $this = shift;
-	return ($this->{'validation'} eq 'agent');
-}
-
-=item C<< $agent = $auth->agent >>
-
-Returns a L<CGI::Auth::FOAF_SSL::Agent> object which represents the agent
-making the request. Occasionally undef.
-
-=cut
-
-sub agent
-{
-	my $this = shift;
-	return $this->{'agent'};
-}
-
-=item C<< $account = $auth->account >>
-
-Returns a L<CGI::Auth::FOAF_SSL::OnlineAccount> object which represents
-the online account of the agent making the request. Usually undef.
-
-=cut
-
-sub account
-{
-	my $this = shift;
-	return $this->{'account'};
-}
-
-=item C<< $thing = $auth->certified_thing >>
-
-Returns a L<CGI::Auth::FOAF_SSL::CertifiedThing> object (or a descendent class)
-which represents the thing given in the certificate's subjectAltName.
-
-Usually you will want to use C<agent> or C<account> instead.
-
-=cut
-
-sub certified_thing
-{
-	my $this = shift;
-	return $this->{'thing'};
-}
-
-=item C<< $cookie = $auth->cookie >>
-
-HTTP cookie related to the authentication process. Sending this to the
-client isn't strictly necessary, but it allows for a session to be
-established, greatly speeding up subsequent accesses. See also the
-COOKIES section of this documentation.
-
-=cut
-
-sub cookie
-{
-	my $this = shift;
-	return $this->{'session'}->cookie;
-}
-
-=back
-
-=head2 Utility Method
+=head2 Utility Methods
 
 =over 4
 
@@ -734,6 +683,112 @@ sub get_trine_model
 	$this->{'session'}->flush;
 	
 	return $model;
+}
+
+=item C<< $bi = $auth->make_bigint_from_node($trine_node) >>
+
+Turns an RDF::Trine::Node::Literal object into a Math::BigInt representing the
+same number.
+
+There are optional named parameters for providing a fallback in the case where
+$trine_node has an unrecognised datatype or is not a literal.
+
+  $bi = $auth->make_bigint_from_node(
+    $trine_node, fallback=>$other_node, fallback_type=>'hex');
+
+The authenticate_by_XXX methods use this.
+
+=cut
+
+sub make_bigint_from_node
+{
+	my $self = shift;
+	my $node = shift;
+	my %opts = @_;
+	
+	if ($node->is_literal)
+	{
+		if ($node->literal_datatype eq 'http://www.w3.org/ns/auth/cert#hex')
+		{
+			my $hex = $node->literal_value;
+			$hex =~ s/[^0-9A-F]//ig;
+			return Math::BigInt->from_hex("0x$hex");
+		}
+		elsif ($node->literal_datatype eq 'http://www.w3.org/ns/auth/cert#decimal'
+		or     $node->literal_datatype eq 'http://www.w3.org/ns/auth/cert#int'
+		or     $node->literal_datatype =~ m'^http://www.w3.org/2001/XMLSchema#(unsigned(Long|Int|Short|Byte)|positiveInteger|nonNegitiveInteger)$')
+		{
+			my $dec = $node->literal_value;
+			$dec =~ s/[^0-9]//ig;
+			return Math::BigInt->new("$dec");
+		}
+		elsif ($node->literal_datatype =~ m'^http://www.w3.org/2001/XMLSchema#(integer|negitiveInteger|nonPositiveInteger|long|short|int|byte)$')
+		{
+			my $dec = $node->literal_value;
+			$dec =~ s/[^0-9-]//ig;
+			return Math::BigInt->new("$dec");
+		}
+		elsif ($node->literal_datatype eq 'http://www.w3.org/2001/XMLSchema#decimal')
+		{
+			my ($dec, $frac) = split /\./, $node->literal_value, 2;
+			$dec =~ s/[^0-9-]//ig;
+			return Math::BigInt->new("$dec");
+			
+			warn "Ignoring fractional part of xsd:decimal number." if defined $frac;
+		}
+		elsif (! $node->literal_datatype)
+		{
+			$opts{'fallback'} = $node;
+		}
+	}
+	
+	if (defined $opts{'fallback'} && $opts{'fallback'}->is_literal)
+	{
+		my $node = $opts{'fallback'};
+		
+		if ($opts{'fallback_type'} eq 'hex')
+		{
+			my $hex = $node->literal_value;
+			$hex =~ s/[^0-9A-F]//ig;
+			return Math::BigInt->from_hex("0x$hex");
+		}
+		else #dec
+		{
+			my ($dec, $frac) = split /\./, $node->literal_value, 2;
+			$dec =~ s/[^0-9]//ig;
+			return Math::BigInt->new("$dec");
+			
+			warn "Ignoring fractional part of xsd:decimal number." if defined $frac;
+		}
+	}
+}
+
+=item C<< $results = $auth->execute_query($sparql) >>
+
+Returns the results of a SPARQL query. Uses the certificate subject's
+RDF file as a data source, or the certificate subject's SPARQL endpoint.
+
+See L<RDF::TrineShortcuts> function rdf_query for an explanation of the
+return format.
+
+=cut
+
+sub execute_query 
+{
+	my $rv = shift;
+	my $q  = shift;
+	
+	if (defined $rv->{'cert_subject_model'})
+	{
+		return rdf_query($q, $rv->{'cert_subject_model'});
+	}
+	
+	if (defined $rv->{'cert_subject_endpoint'})
+	{
+		return rdf_query($q, $rv->{'cert_subject_endpoint'});
+	}
+	
+	return undef;
 }
 
 1;

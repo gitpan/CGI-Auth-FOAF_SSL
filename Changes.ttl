@@ -161,6 +161,19 @@ my:v_1_00_02
 			[ rdfs:label "The rsa and cert vocabularies have been changed recently."@en ; a dcs:Update ]
 		] .
 
+my:v_1_00_03
+	a               :Version ;
+	dc:issued       "2010-03-26"^^xsd:date ;
+	:revision       "1.00_03"^^xsd:string ;
+	:file-release   <http://backpan.cpan.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-1.00_03.tar.gz> ;
+	dcs:changeset [
+		dcs:versus my:v_1_00_02 ;
+		dcs:item
+			[ rdfs:label "Rename new_smiple to new_unauthenticated and document its usage."@en ] ,
+			[ rdfs:label "Rename verify_certificate_by_XXX functions to authenticate_by_XXX, make them share common code, document their usage."@en ] ,
+			[ rdfs:label "Use Math::BigInt instead of string comparison for comparing big hexadecimal numbers."@en ]
+		] .
+
 #############################################################
 
 my:project
@@ -181,7 +194,7 @@ my:project
 	:license        <http://dev.perl.org/licenses/> ;
 	:release        my:v_0_01 , my:v_0_02 , my:v_0_03 , my:v_0_04 , my:v_0_05 ,
 	                my:v_0_50 , my:v_0_51 , my:v_0_52 ,
-	                my:v_1_00_00 , my:v_1_00_01 , my:v_1_00_02 .
+	                my:v_1_00_00 , my:v_1_00_01 , my:v_1_00_02 , my:v_1_00_03 .
 
 #############################################################
 

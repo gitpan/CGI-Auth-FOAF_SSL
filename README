@@ -28,7 +28,7 @@ SYNOPSIS
       }
 
 VERSION
-    1.00_02
+    1.00_03
 
 DESCRIPTION
     FOAF+SSL is a simple authentication scheme described at
@@ -72,6 +72,14 @@ DESCRIPTION
         the CGI request. It has the same return values as "new".
 
         If $cgi_object is omitted, uses "CGI->new" instead.
+
+    "$auth = CGI::Auth::FOAF_SSL->new_unauthenticated($pem_encoded)"
+        Creates a CGI::Auth::FOAF_SSL object without doing any
+        authentication.
+
+        It's very unlikely you want to do this. If you do create an
+        unauthenticated object, then you'll probably want to do some
+        authentication using the authenticate_by_XXX methods.
 
   Public Methods
     "$bool = $auth->is_secure"
@@ -135,9 +143,50 @@ DESCRIPTION
         be established, greatly speeding up subsequent accesses. See also
         the COOKIES section of this documentation.
 
-  Utility Method
+    "$ok = $auth->authenticate_by_uri($uri)"
+        Checks if $uri claims that $auth's key identifies it.
+
+        This is only relevent if you constructed $auth using
+        "new_unauthenticated".
+
+    "$ok = $auth->authenticate_by_email($email_address)"
+        Checks if $email_address claims that $auth's key identifies it (via
+        WebFinger/Fingerpoint).
+
+        This is only relevent if you constructed $auth using
+        "new_unauthenticated".
+
+    "$ok = $auth->authenticate_by_sparql($uri, $endpoint)"
+        Checks if $endpoint claims that $auth's key identifies $uri.
+        $endpoint may be a SPARQL endpoint URI or an RDF::Trine::Model.
+
+        This is only relevent if you constructed $auth using
+        "new_unauthenticated".
+
+  Utility Methods
     "$model = $auth->get_trine_model($uri)"
         Get an RDF::Trine::Model corresponding to a URI.
+
+    "$bi = $auth->make_bigint_from_node($trine_node)"
+        Turns an RDF::Trine::Node::Literal object into a Math::BigInt
+        representing the same number.
+
+        There are optional named parameters for providing a fallback in the
+        case where $trine_node has an unrecognised datatype or is not a
+        literal.
+
+          $bi = $auth->make_bigint_from_node(
+            $trine_node, fallback=>$other_node, fallback_type=>'hex');
+
+        The authenticate_by_XXX methods use this.
+
+    "$results = $auth->execute_query($sparql)"
+        Returns the results of a SPARQL query. Uses the certificate
+        subject's RDF file as a data source, or the certificate subject's
+        SPARQL endpoint.
+
+        See RDF::TrineShortcuts function rdf_query for an explanation of the
+        return format.
 
 COOKIES
     FOAF+SSL is entirely RESTful: there is no state kept between requests.

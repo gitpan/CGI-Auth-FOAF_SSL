@@ -25,6 +25,7 @@ requires:
   Encode: 0
   IPC::Open2: 0
   LWP::UserAgent: 0
+  Math::BigInt: 0
   RDF::TrineShortcuts: 0.05
   WWW::Finger: 0.08
   perl: 5.8.0
@@ -33,4 +34,4 @@ resources:
   homepage: http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/
   license: http://dev.perl.org/licenses/
   repository: http://goddamn.co.uk/viewvc/perlmods/CGI-Auth-FOAF_SSL/
-version: 1.00_02
+version: 1.00_03
