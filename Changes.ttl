@@ -20,7 +20,7 @@
 
 #############################################################
 
-my:v_0_01
+my:v_0-01
 
 	a               :Version ;
 	dc:issued       "2009-02-05"^^xsd:date ;
@@ -28,59 +28,59 @@ my:v_0_01
 	:file-release   <http://backpan.cpan.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.01.tar.gz> ;
 	rdfs:label      "First release"@en .
 
-my:v_0_02
+my:v_0-02
 
 	a               :Version ;
 	dc:issued       "2009-02-19"^^xsd:date ;
 	:revision       "0.02"^^xsd:string ;
 	:file-release   <http://backpan.cpan.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.02.tar.gz> ;
 	dcs:changeset [
-		dcs:versus my:v_0_01 ;
+		dcs:versus my:v_0-01 ;
 		dc:item
 			[ rdfs:label "Changed API."@en ] ,
 			[ rdfs:label "Allow subjectAltName to point to a foaf:OnlineAccount."@en ; a dcs:Addition ]
 		] .
 
-my:v_0_03
+my:v_0-03
 
 	a               :Version ;
 	dc:issued       "2009-03-01"^^xsd:date ;
 	:revision       "0.03"^^xsd:string ;
 	:file-release   <http://backpan.cpan.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.03.tar.gz> ;
 	dcs:changeset [
-		dcs:versus my:v_0_02 ;
+		dcs:versus my:v_0-02 ;
 		dc:item
 			[ rdfs:label "Fixed some bugs with new_from_cgi."@en ; a dcs:Bugfix ] ,
 			[ rdfs:label "Documentation improvements."@en ]
 		] .
 
-my:v_0_04
+my:v_0-04
 
 	a               :Version ;
 	dc:issued       "2009-03-01"^^xsd:date ;
 	:revision       "0.04"^^xsd:string ;
 	:file-release   <http://backpan.cpan.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.04.tar.gz> ;
 	dcs:changeset [
-		dcs:versus my:v_0_03 ;
+		dcs:versus my:v_0-03 ;
 		dc:item
 			[ rdfs:label "foaf:Agent-related fix."@en ; a dcs:Bugfix ] ,
 			[ rdfs:label "foaf:OnlineAccount-related security fix."@en ; a dcs:Bugfix ]
 		] .
 
-my:v_0_05
+my:v_0-05
 
 	a               :Version ;
 	dc:issued       "2009-03-26"^^xsd:date ;
 	:revision       "0.05"^^xsd:string ;
 	:file-release   <http://backpan.cpan.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.05.tar.gz> ;
 	dcs:changeset [
-		dcs:versus my:v_0_05 ;
+		dcs:versus my:v_0-05 ;
 		dc:item
 			[ rdfs:label "No longer require certs to include Netscape extensions."@en ] ,
 			[ rdfs:label "Support for consuming RDFa."@en ; a dcs:Addition ]
 		] .
 
-my:v_0_50
+my:v_0-50
 
 	a               :Version ;
 	dc:issued       "2009-12-14"^^xsd:date ;
@@ -88,7 +88,7 @@ my:v_0_50
 	:file-release   <http://backpan.cpan.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.50.tar.gz> ;
 	rdfs:label      "Trine Edition"@en ;
 	dcs:changeset [
-		dcs:versus my:v_0_05 ;
+		dcs:versus my:v_0-05 ;
 		dc:item
 			[ rdfs:label "Switch from RDF::Redland to RDF::Trine."@en ] ,
 			[ rdfs:label "Support Fingerpoint as fallback for URIless certificates."@en ; a dcs:Addition ] ,
@@ -97,40 +97,40 @@ my:v_0_50
 			[ rdfs:label "New build system using Module::Install."@en ; a dcs:Update ] 
 		] .
 
-my:v_0_51
+my:v_0-51
 
 	a               :Version ;
 	dc:issued       "2009-12-15"^^xsd:date ;
 	:revision       "0.51"^^xsd:string ;
 	:file-release   <http://backpan.cpan.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.51.tar.gz> ;
 	dcs:changeset [
-		dcs:versus my:v_0_50 ;
+		dcs:versus my:v_0-50 ;
 		dc:item
 			[ rdfs:label "Use WWW::Finger instead of its subclass WWW::Finger::Fingerpoint."@en ] ,
 			[ rdfs:label "Fix package signature."@en ] 
 		] .
 
-my:v_0_52
+my:v_0-52
 
 	a               :Version ;
 	dc:issued       "2009-12-16"^^xsd:date ;
 	:revision       "0.52"^^xsd:string ;
 	:file-release   <http://backpan.cpan.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.52.tar.gz> ;
 	dcs:changeset [
-		dcs:versus my:v_0_51 ;
+		dcs:versus my:v_0-51 ;
 		dc:item
 			[ rdfs:label "Support new foaf:account property."@en ; a dcs:Update ] ,
 			[ rdfs:label "Correct for mismatched hex string lengths by adding leading zeros to shorter string."@en ; a dcs:Bugfix ] 
 		] .
 	
-my:v_1_00_00
+my:v_1-00_00
 
 	a               :Version ;
 	dc:issued       "2010-02-05"^^xsd:date ;
 	:revision       "1.00_00"^^xsd:string ;
 	:file-release   <http://backpan.cpan.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-1.00_00.tar.gz> ;
 	dcs:changeset [
-		dcs:versus my:v_0_52 ;
+		dcs:versus my:v_0-52 ;
 		dc:item
 			[ rdfs:label "use RDF::TrineShortcuts"@en ; a dcs:Update ] ,
 			[ rdfs:label "Much better documentation."@en ] ,
@@ -139,39 +139,51 @@ my:v_1_00_00
 			[ rdfs:label "Allow new_from_cgi to be called with no arguments."@en ]
 		] .
 
-my:v_1_00_01
+my:v_1-00_01
 	a               :Version ;
 	dc:issued       "2010-02-10"^^xsd:date ;
 	:revision       "1.00_01"^^xsd:string ;
 	:file-release   <http://backpan.cpan.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-1.00_01.tar.gz> ;
 	dcs:changeset [
-		dcs:versus my:v_1_00_00 ;
+		dcs:versus my:v_1-00_00 ;
 		dcs:item
 			[ rdfs:label "Documentation improvements"@en ]
 		] .
 
-my:v_1_00_02
+my:v_1-00_02
 	a               :Version ;
 	dc:issued       "2010-03-21"^^xsd:date ;
 	:revision       "1.00_02"^^xsd:string ;
 	:file-release   <http://backpan.cpan.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-1.00_02.tar.gz> ;
 	dcs:changeset [
-		dcs:versus my:v_1_00_01 ;
+		dcs:versus my:v_1-00_01 ;
 		dcs:item
 			[ rdfs:label "The rsa and cert vocabularies have been changed recently."@en ; a dcs:Update ]
 		] .
 
-my:v_1_00_03
+my:v_1-00_03
 	a               :Version ;
 	dc:issued       "2010-03-26"^^xsd:date ;
 	:revision       "1.00_03"^^xsd:string ;
 	:file-release   <http://backpan.cpan.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-1.00_03.tar.gz> ;
 	dcs:changeset [
-		dcs:versus my:v_1_00_02 ;
+		dcs:versus my:v_1-00_02 ;
 		dcs:item
 			[ rdfs:label "Rename new_smiple to new_unauthenticated and document its usage."@en ] ,
 			[ rdfs:label "Rename verify_certificate_by_XXX functions to authenticate_by_XXX, make them share common code, document their usage."@en ] ,
 			[ rdfs:label "Use Math::BigInt instead of string comparison for comparing big hexadecimal numbers."@en ]
+		] .
+
+my:v_1-000
+	a               :Version ;
+	dc:issued       "2010-07-25"^^xsd:date ;
+	:revision       "1.000"^^xsd:string ;
+	:file-release   <http://backpan.cpan.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-1.000.tar.gz> ;
+	dcs:changeset [
+		dcs:versus my:v_1-00_03 ;
+		dcs:item
+			[ rdfs:label "No longer supports subjectAltName pointing at a foaf:OnlineAccount. subjectAltName is always assumed to point to a foaf:Agent."@en ; a dcs:Removal ] ,
+			[ rdfs:label "Constructor returns an object where \"->is_secure\" is false rather than undef in the case of a certificate with no useful subjectAltName."@en ]
 		] .
 
 #############################################################
@@ -180,7 +192,7 @@ my:project
 
 	a               :Project ;
 	:name           "CGI-Auth-FOAF_SSL" ;
-	:shortdesc      "authentication using FOAF+SSL"@en ;
+	:shortdesc      "authentication using FOAF+SSL (WebID)"@en ;
 	:programming-language  "Perl" ;
 	:homepage       <http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/> ;
 	:download-page  <http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/> ;
@@ -192,9 +204,10 @@ my:project
 	:tester         toby:i ;
 	:created        "2009-02-05"^^xsd:date ;
 	:license        <http://dev.perl.org/licenses/> ;
-	:release        my:v_0_01 , my:v_0_02 , my:v_0_03 , my:v_0_04 , my:v_0_05 ,
-	                my:v_0_50 , my:v_0_51 , my:v_0_52 ,
-	                my:v_1_00_00 , my:v_1_00_01 , my:v_1_00_02 , my:v_1_00_03 .
+	:release        my:v_0-01 , my:v_0-02 , my:v_0-03 , my:v_0-04 , my:v_0-05 ,
+	                my:v_0-50 , my:v_0-51 , my:v_0-52 ,
+	                my:v_1-00_00 , my:v_1-00_01 , my:v_1-00_02 , my:v_1-00_03 , my:v_1-00_04 ,
+	                my:v_1-000 .
 
 #############################################################
 

@@ -23,8 +23,8 @@ requires            'Encode'             => 0;
 requires            'IPC::Open2'         => 0;
 requires            'LWP::UserAgent'     => 0;
 requires            'Math::BigInt'       => 0;
-requires            'RDF::TrineShortcuts'=> '0.05';
-requires            'WWW::Finger'        => '0.08';
+requires            'RDF::TrineShortcuts'=> '0.100';
+requires            'WWW::Finger'        => '0.100';
 
 # install_script 'fingerw';
 

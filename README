@@ -1,5 +1,5 @@
 NAME
-    CGI::Auth::FOAF_SSL - authentication using FOAF+SSL
+    CGI::Auth::FOAF_SSL - authentication using FOAF+SSL (WebID)
 
 SYNOPSIS
       use CGI qw(:all);
@@ -28,10 +28,10 @@ SYNOPSIS
       }
 
 VERSION
-    1.00_03
+    1.000
 
 DESCRIPTION
-    FOAF+SSL is a simple authentication scheme described at
+    FOAF+SSL (a.k.a. WebID) is a simple authentication scheme described at
     <http://esw.w3.org/topic/foaf+ssl>. This module provides FOAF+SSL
     authentication for CGI scripts written in Perl.
 
@@ -86,56 +86,9 @@ DESCRIPTION
         Returns true iff the authentication process was completely
         successful.
 
-        What does it mean for the authentication process to have been
-        partially successful? There are two such situations:
-
-        *   The rdf:type of the URI given in subjectAltName could not be
-            established.
-
-            Perhaps no RDF could be found which provides an rdf:type for the
-            URI, or if an rdf:type is found, it is one that this module does
-            not recognise.
-
-        *   The subjectAltName URI is established to be a
-            foaf:OnlineAccount, but no account holder is confirmed.
-
-            To confirm that the account in question belongs to someone, the
-            RDF data associated with the account must provide the URI of an
-            account holder. Whatsmore the RDF data associated with the
-            account holder's URI must confirm that the account really does
-            belong to them.
-
-            This means that when dereferencing the subjectAltName and
-            finding that it identifies an account *?account*, the data must
-            provide the following triples:
-
-              ?webid foaf:account ?account .
-              ?account a foaf:OnlineAccount .
-
-            And when *?webid* is dereferenced, it must also provide this
-            triple:
-
-              ?webid foaf:account ?account .
-
-        In either of these two situations, it is probably not safe to trust
-        any data you get back from the "agent", "account" or
-        "certified_thing" methods (except perhaps
-        "$auth->certified_thing->identity").
-
     "$agent = $auth->agent"
         Returns a CGI::Auth::FOAF_SSL::Agent object which represents the
-        agent making the request. Occasionally undef.
-
-    "$account = $auth->account"
-        Returns a CGI::Auth::FOAF_SSL::OnlineAccount object which represents
-        the online account of the agent making the request. Usually undef.
-
-    "$thing = $auth->certified_thing"
-        Returns a CGI::Auth::FOAF_SSL::CertifiedThing object (or a
-        descendent class) which represents the thing given in the
-        certificate's subjectAltName.
-
-        Usually you will want to use "agent" or "account" instead.
+        agent making the request.
 
     "$cookie = $auth->cookie"
         HTTP cookie related to the authentication process. Sending this to
@@ -175,7 +128,7 @@ DESCRIPTION
         case where $trine_node has an unrecognised datatype or is not a
         literal.
 
-          $bi = $auth->make_bigint_from_node(
+         $bi = $auth->make_bigint_from_node(
             $trine_node, fallback=>$other_node, fallback_type=>'hex');
 
         The authenticate_by_XXX methods use this.
@@ -242,8 +195,7 @@ BUGS
     Please report any bugs to <http://rt.cpan.org/>.
 
 SEE ALSO
-    Helper modules: CGI::Auth::FOAF_SSL::CertifiedThing,
-    CGI::Auth::FOAF_SSL::Agent, CGI::Auth::FOAF_SSL::OnlineAccount.
+    Helper module: CGI::Auth::FOAF_SSL::Agent
 
     Related modules: CGI, RDF::Trine, RDF::ACL.
 

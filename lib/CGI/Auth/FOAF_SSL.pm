@@ -6,7 +6,7 @@ use warnings;
 
 =head1 NAME
 
-CGI::Auth::FOAF_SSL - authentication using FOAF+SSL
+CGI::Auth::FOAF_SSL - authentication using FOAF+SSL (WebID)
 
 =head1 SYNOPSIS
 
@@ -37,16 +37,16 @@ CGI::Auth::FOAF_SSL - authentication using FOAF+SSL
 
 =head1 VERSION
 
-1.00_03
+1.000
 
 =cut
 
-our $VERSION = '1.00_03';
+our $VERSION = '1.000';
 
 =head1 DESCRIPTION
 
-FOAF+SSL is a simple authentication scheme described at
-L<http://esw.w3.org/topic/foaf+ssl>. This module provides FOAF+SSL
+FOAF+SSL (a.k.a. WebID) is a simple authentication scheme described
+at L<http://esw.w3.org/topic/foaf+ssl>. This module provides FOAF+SSL
 authentication for CGI scripts written in Perl.
 
 This requires the web server to be using HTTPS and to be configured to
@@ -66,19 +66,18 @@ setup:
 
 =cut
 
+use CGI::Auth::FOAF_SSL::Agent;
+
 use Carp;
 use CGI;
-use CGI::Auth::FOAF_SSL::Agent;
-use CGI::Auth::FOAF_SSL::CertifiedThing;
-use CGI::Auth::FOAF_SSL::OnlineAccount;
 use CGI::Session;
 use Encode qw(encode_utf8);
 use File::Spec;
 use IPC::Open2;
 use LWP::UserAgent;
 use Math::BigInt try=>'GMP';
-use RDF::TrineShortcuts 0.05;
-use WWW::Finger 0.03;
+use RDF::TrineShortcuts '0.100';
+use WWW::Finger '0.100';
 
 =head2 Configuration
 
@@ -120,7 +119,8 @@ sub new
 	
 	return undef unless $self;
 	
-	my $verified = 0;
+	my $verified;
+	
 	if (defined $self->{'subject_alt_names'}->{'URI'})
 	{
 		foreach my $uri (@{ $self->{'subject_alt_names'}->{'URI'} })
@@ -130,8 +130,7 @@ sub new
 		}
 	}
 	
-	if (defined $self->{'subject_alt_names'}->{'EMAIL'}
-	and !$verified)
+	if (defined $self->{'subject_alt_names'}->{'EMAIL'} and !$verified)
 	{
 		foreach my $e (@{ $self->{'subject_alt_names'}->{'EMAIL'} })
 		{
@@ -221,14 +220,14 @@ sub new_unauthenticated
 	close READ;
 	close WRITE;
 	
-	# Only allow FOAF+SSL certificates.
 	$self->{'subject_alt_names'} = {};
 	while ($alt_name =~ /(?:\s|\,|^)(URI|email):([^\s\,]+)(?:\s|\,|$)/ig)
 	{
 		push @{ $self->{'subject_alt_names'}->{uc $1} }, $2;
 	}
 	
-	return undef unless $self->{'subject_alt_names'};
+#	# Only allow FOAF+SSL certificates.
+#	return undef unless $self->{'subject_alt_names'};
 	
 	# Modulus.
 	$pid = 0;
@@ -284,42 +283,6 @@ sub _calculate_modulus_and_exponent_bigints
 
 Returns true iff the authentication process was completely successful.
 
-What does it mean for the authentication process to have been partially
-successful? There are two such situations:
-
-=over 4
-
-=item * The rdf:type of the URI given in subjectAltName could not be established.
-
-Perhaps no RDF could be found which provides an rdf:type for the URI,
-or if an rdf:type is found, it is one that this module does not
-recognise.
-
-=item * The subjectAltName URI is established to be a foaf:OnlineAccount, but no account holder is confirmed.
-
-To confirm that the account in question belongs to someone, the
-RDF data associated with the account must provide the URI of an
-account holder. Whatsmore the RDF data associated with the account
-holder's URI must confirm that the account really does belong to
-them.
-
-This means that when dereferencing the subjectAltName and finding
-that it identifies an account I<?account>, the data must provide
-the following triples:
-
-  ?webid foaf:account ?account .
-  ?account a foaf:OnlineAccount .
-
-And when I<?webid> is dereferenced, it must also provide this triple:
-
-  ?webid foaf:account ?account .
-
-=back
-
-In either of these two situations, it is probably not safe to trust
-any data you get back from the C<agent>, C<account> or C<certified_thing>
-methods (except perhaps C<< $auth->certified_thing->identity >>).
-
 =cut
 
 sub is_secure
@@ -331,7 +294,7 @@ sub is_secure
 =item C<< $agent = $auth->agent >>
 
 Returns a L<CGI::Auth::FOAF_SSL::Agent> object which represents the agent
-making the request. Occasionally undef.
+making the request. 
 
 =cut
 
@@ -341,27 +304,11 @@ sub agent
 	return $this->{'agent'};
 }
 
-=item C<< $account = $auth->account >>
-
-Returns a L<CGI::Auth::FOAF_SSL::OnlineAccount> object which represents
-the online account of the agent making the request. Usually undef.
-
-=cut
-
 sub account
 {
 	my $this = shift;
-	return $this->{'account'};
+	return undef;
 }
-
-=item C<< $thing = $auth->certified_thing >>
-
-Returns a L<CGI::Auth::FOAF_SSL::CertifiedThing> object (or a descendent class)
-which represents the thing given in the certificate's subjectAltName.
-
-Usually you will want to use C<agent> or C<account> instead.
-
-=cut
 
 sub certified_thing
 {
@@ -434,18 +381,18 @@ sub authenticate_by_sparql
 {
 	my ($self, $uri, $model, $fp) = @_;
 	
-	my $query_string = sprintf("PREFIX cert: <http://www.w3.org/ns/auth/cert#> "
-	                          ."PREFIX rsa: <http://www.w3.org/ns/auth/rsa#> "
-	                          ."SELECT ?modulus ?exponent ?decExponent ?hexModulus "
-	                          ."WHERE "
-	                          ."{ "
-	                          ."    ?key "
-	                          ."        cert:identity <%s> ; "
-	                          ."        rsa:modulus ?modulus ; "
-	                          ."        rsa:public_exponent ?exponent . "
-	                          ."    OPTIONAL { ?modulus cert:hex ?hexModulus . } "
-	                          ."    OPTIONAL { ?exponent cert:decimal ?decExponent . } "
-	                          ."}",
+	my $query_string = sprintf("PREFIX cert: <http://www.w3.org/ns/auth/cert#>\n"
+	                          ."PREFIX rsa: <http://www.w3.org/ns/auth/rsa#>\n"
+	                          ."SELECT ?modulus ?exponent ?decExponent ?hexModulus\n"
+	                          ."WHERE\n"
+	                          ."{\n"
+	                          ."    ?key\n"
+	                          ."        cert:identity <%s> ;\n"
+	                          ."        rsa:modulus ?modulus ;\n"
+	                          ."        rsa:public_exponent ?exponent .\n"
+	                          ."    OPTIONAL { ?modulus cert:hex ?hexModulus . }\n"
+	                          ."    OPTIONAL { ?exponent cert:decimal ?decExponent . }\n"
+	                          ."}\n",
 	                          $uri);
 	my $results = rdf_query($query_string, $model);
 	
@@ -483,161 +430,20 @@ sub authenticate_by_sparql
 
 sub load_personal_info
 {
-	my $rv = shift;
+	my $self = shift;
 	
 	return 0
-		unless defined $rv and $rv->{'validation'} eq 'cert';
+		unless defined $self and $self->{'validation'} eq 'cert';
 	
-	# List of RDF classes that the module understands.
-	my @agentTypes   = ('http://xmlns.com/foaf/0.1/Person',
-	                    'http://xmlns.com/foaf/0.1/Agent',
-	                    'http://xmlns.com/foaf/0.1/Organisation',
-	                    'http://xmlns.com/foaf/0.1/Group');
-	my @accountTypes = ('http://xmlns.com/foaf/0.1/OnlineAccount',
-	                    'http://xmlns.com/foaf/0.1/OnlineChatAccount',
-	                    'http://xmlns.com/foaf/0.1/OnlineGamingAccount',
-	                    'http://xmlns.com/foaf/0.1/OnlineEcommerceAccount',
-	                    'http://rdfs.org/sioc/ns#User');
+	$self->{'cert_subject_type'} = 'Agent';
+	$self->{'agent'} = CGI::Auth::FOAF_SSL::Agent->new(
+		$self->{'cert_subject_uri'},
+		$self->{'cert_subject_model'},
+		$self->{'cert_subject_endpoint'});
+	$self->{'thing'} = $self->{'agent'};
+	$self->{'validation'} = 'agent';
 	
-	# Check to see if $self->identity is a foaf:Agent or a foaf:OnlineAccount.
-	my $query_string = sprintf("SELECT ?type "
-	                          ."WHERE { "
-	                          ."    <%s> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?type . "
-	                          ."}",
-	                          $rv->{'cert_subject_uri'});
-	my $results = $rv->execute_query( $query_string );
-	
-	RESULT: while (my $row = $results->next)
-	{
-		my $type = $row->{'type'}->uri;
-		
-		foreach my $t (@agentTypes)
-		{
-			if ($type eq $t)
-			{
-				$rv->{'cert_subject_type'} = 'Agent';
-				last RESULT;
-			}
-		}
-		
-		foreach my $t (@accountTypes)
-		{
-			if ($type eq $t)
-			{
-				$rv->{'cert_subject_type'} = 'OnlineAccount';
-				last RESULT;
-			}
-		}
-		
-		$results->next_result;
-	}
-	
-	# No explicit rdf:type. :-(
-	#
-	# Might be able to figure it out from existence of certain predicates:
-	#      - foaf:holdsAccount
-	#      - foaf:account
-	#      - foaf:accountServiceHomepage
-	#      - foaf:accountName
-	#      - http://rdfs.org/sioc/ns#account_of
-	
-	my $retrievedAgentUri;
-	
-	if (!defined $rv->{'cert_subject_type'}
-	||  $rv->{'cert_subject_type'} eq 'OnlineAccount')
-	{
-		my $results = $rv->execute_query(
-			sprintf('SELECT ?person
-				WHERE {
-					{ <%s> <http://rdfs.org/sioc/ns#account_of> ?person . }
-					UNION { ?person <http://xmlns.com/foaf/0.1/holdsAccount> <%s> . }
-					UNION { ?person <http://xmlns.com/foaf/0.1/account> <%s> . }
-				}',
-				$rv->{'cert_subject_uri'}, $rv->{'cert_subject_uri'}, $rv->{'cert_subject_uri'}),
-			$rv->{'cert_subject_uri'});
-			
-		if (my $row = $results->next)
-		{
-			$rv->{'cert_subject_type'} = 'OnlineAccount';
-			$retrievedAgentUri = $row->{'person'}->uri
-				unless defined $retrievedAgentUri;
-		}
-	}
-	
-	unless (defined $rv->{'cert_subject_type'})
-	{
-		my $results = $rv->execute_query(
-			sprintf('ASK
-				WHERE {
-					{ <%s> <http://xmlns.com/foaf/0.1/accountName> ?o . }
-					UNION { <%s> <http://xmlns.com/foaf/0.1/accountServiceHomepage> ?o . }
-				}',
-				$rv->{'cert_subject_uri'}, $rv->{'cert_subject_uri'}),
-			$rv->{'cert_subject_uri'});
-		
-		if ($results)
-			{ $rv->{'cert_subject_type'} = 'OnlineAccount'; }
-	}
-	
-	if (defined $rv->{'cert_subject_type'} 
-	&&  $rv->{'cert_subject_type'} eq 'Agent')
-	{
-		$rv->{'agent'} = CGI::Auth::FOAF_SSL::Agent->new(
-			$rv->{'cert_subject_uri'},
-			$rv->{'cert_subject_model'},
-			$rv->{'cert_subject_endpoint'});
-			
-		$rv->{'thing'} = $rv->{'agent'};
-		$rv->{'validation'} = 'agent';
-		
-		return 1;
-	}
-	
-	elsif (defined $rv->{'cert_subject_type'} 
-	&&  $rv->{'cert_subject_type'} eq 'OnlineAccount')
-	{
-		$rv->{'account'} = CGI::Auth::FOAF_SSL::OnlineAccount->new(
-			$rv->{'cert_subject_uri'},
-			$rv->{'cert_subject_model'},
-			$rv->{'cert_subject_endpoint'});
-		
-		$rv->{'thing'} = $rv->{'account'};
-		
-		if (defined $retrievedAgentUri)
-		{
-			my $model = $rv->get_trine_model($retrievedAgentUri);
-			$rv->{'agent'} = CGI::Auth::FOAF_SSL::Agent->new($retrievedAgentUri, $model);
-			
-			if ($model)
-			{
-				my $query = RDF::Query->new(
-					sprintf('ASK
-						WHERE {
-							{ <%s> <http://rdfs.org/sioc/ns#account_of> <%s> . }
-							UNION { <%s> <http://xmlns.com/foaf/0.1/holdsAccount> <%s> . }
-							UNION { <%s> <http://xmlns.com/foaf/0.1/account> <%s> . }
-						}',
-						$rv->{'cert_subject_uri'}, $retrievedAgentUri,
-						$retrievedAgentUri, $rv->{'cert_subject_uri'},
-						$retrievedAgentUri, $rv->{'cert_subject_uri'}),
-					$retrievedAgentUri);
-				my $results = $query->execute($model);
-				if ($results->is_boolean && $results->get_boolean)
-				{
-					$rv->{'validation'} = 'agent';
-				}
-			}
-		}
-		
-		return 1;
-	}
-	
-	$rv->{'thing'} = CGI::Auth::FOAF_SSL::CertifiedThing->new(
-		$rv->{'cert_subject_uri'},
-		$rv->{'cert_subject_model'},
-		$rv->{'cert_subject_endpoint'});
-	
-	return 0;
+	return 1;
 }
 
 
@@ -687,13 +493,14 @@ sub get_trine_model
 
 =item C<< $bi = $auth->make_bigint_from_node($trine_node) >>
 
-Turns an RDF::Trine::Node::Literal object into a Math::BigInt representing the
-same number.
+Turns an RDF::Trine::Node::Literal object into a Math::BigInt
+representing the same number.
 
-There are optional named parameters for providing a fallback in the case where
-$trine_node has an unrecognised datatype or is not a literal.
+There are optional named parameters for providing a fallback
+in the case where $trine_node has an unrecognised datatype or
+is not a literal.
 
-  $bi = $auth->make_bigint_from_node(
+ $bi = $auth->make_bigint_from_node(
     $trine_node, fallback=>$other_node, fallback_type=>'hex');
 
 The authenticate_by_XXX methods use this.
@@ -758,7 +565,8 @@ sub make_bigint_from_node
 			$dec =~ s/[^0-9]//ig;
 			return Math::BigInt->new("$dec");
 			
-			warn "Ignoring fractional part of xsd:decimal number." if defined $frac;
+			warn "Ignoring fractional part of xsd:decimal number."
+				if defined $frac;
 		}
 	}
 }
@@ -855,10 +663,8 @@ Please report any bugs to L<http://rt.cpan.org/>.
 
 =head1 SEE ALSO
 
-Helper modules:
-L<CGI::Auth::FOAF_SSL::CertifiedThing>,
-L<CGI::Auth::FOAF_SSL::Agent>,
-L<CGI::Auth::FOAF_SSL::OnlineAccount>.
+Helper module:
+L<CGI::Auth::FOAF_SSL::Agent>
 
 Related modules:
 L<CGI>, L<RDF::Trine>, L<RDF::ACL>.

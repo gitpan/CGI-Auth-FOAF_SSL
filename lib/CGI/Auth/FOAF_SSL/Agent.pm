@@ -1,13 +1,87 @@
 package CGI::Auth::FOAF_SSL::Agent;
 
-use base 'CGI::Auth::FOAF_SSL::CertifiedThing';
+use RDF::Query;
+use RDF::Query::Client;
+use RDF::Trine;
 
-our $VERSION = '1.00_01';
+our $VERSION = '1.000';
+
+sub new
+{
+	my $class = shift;
+	my $this  = {};
+
+	$this->{'identity'}    = shift;
+	$this->{'model'}       = shift;
+	$this->{'endpoint'}    = shift;
+
+	bless $this, $class;
+}
+
+sub identity
+{
+	my $this = shift;
+	return $this->{'identity'};
+}
+
+sub model
+{
+	my $this = shift;
+	return $this->{'model'};
+}
+
+sub endpoint
+{
+	my $this = shift;
+	return $this->{'endpoint'};
+}
+
+sub _getter
+{
+	my $this  = shift;
+	my $key   = shift;
+	my @preds = @_;
+	
+	PREDICATE: foreach my $p (@preds)
+	{
+		last PREDICATE
+			if defined $this->{ $key };
+		
+		my $query_string = sprintf("SELECT ?x WHERE { <%s> <%s> ?x . } ORDER BY ?x", $this->identity, $p);
+		my $results;
+		
+		if (defined $this->model)
+		{
+			my $query = RDF::Query->new($query_string);
+			$results  = $query->execute($this->model);
+		}
+		elsif (defined $this->endpoint)
+		{
+			my $query = RDF::Query::Client->new($query_string);
+			$results  = $query->execute($this->endpoint, {QueryMethod=>'POST'});
+		}
+		
+		RESULT: while (my $row = $results->next)
+		{
+			last RESULT
+				if defined $this->{ $key };
+			
+			my $node = $row->{'x'};
+		
+			if (defined $node and $node->is_resource)
+				{ $this->{ $key } = $node->uri; }
+			elsif (defined $node and $node->is_literal)
+				{ $this->{ $key } = $node->literal_value; }
+		}
+	}
+	
+	return $this->{ $key };
+}
 
 sub name
 {
 	my $this = shift;
-	return $this->getter('name',
+	return $this->_getter('name',
 		'http://xmlns.com/foaf/0.1/name',
 		'http://www.w3.org/2000/01/rdf-schema#label',
 		'http://xmlns.com/foaf/0.1/nick');
@@ -16,7 +90,7 @@ sub name
 sub homepage
 {
 	my $this = shift;
-	return $this->getter('homepage',
+	return $this->_getter('homepage',
 		'http://xmlns.com/foaf/0.1/homepage',
 		'http://xmlns.com/foaf/0.1/weblog',
 		'http://xmlns.com/foaf/0.1/page');
@@ -25,7 +99,7 @@ sub homepage
 sub img
 {
 	my $this = shift;
-	return $this->getter('img',
+	return $this->_getter('img',
 		'http://xmlns.com/foaf/0.1/img',
 		'http://xmlns.com/foaf/0.1/depiction');
 }
@@ -33,7 +107,7 @@ sub img
 sub mbox
 {
 	my $this = shift;
-	return $this->getter('mbox',
+	return $this->_getter('mbox',
 		'http://xmlns.com/foaf/0.1/mbox');
 }
 
@@ -50,25 +124,44 @@ CGI::Auth::FOAF_SSL::Agent - an agent (in the FOAF sense)
   my $auth = CGI::Auth::FOAF_SSL->new_from_cgi;
   if ($auth->is_secure)
   {
-    my $user = $auth->agent;
-    if ($user)
+    my $person = $auth->agent;
+    if ($person)
     {
-      my $name = $user->name;
-      my $link = $user->homepage;
+      my $name = $person->name;
+      my $link = $person->homepage;
     }
   }
 
 =head1 DESCRIPTION
 
-CGI::Auth::FOAF_SSL::Agent inherits from
-L<CGI::Auth::FOAF_SSL::CertifiedThing>, so any methods that apply
-to a CertifiedThing apply to agents too.
+=head2 Constructor
 
-CGI::Auth::FOAF_SSL::Agent provides some additional methods.
+=over 4
+
+=item C<< $agent = CGI::Auth::FOAF_SSL::Agent->new($id, $model, $ep) >>
+
+Create a new object representing an agent. $id is an identfying URI, and is
+required. $model is an RDF::Trine::Model containing data about the agent, or
+may be undef. $ep is a SPARQL endpoint URL, or may be undef.
+
+=back
 
 =head2 Public Methods
 
 =over 4
+
+=item C<< $agent->identity >>
+
+Returns the URI identifying the agent.
+
+=item C<< $agent->model >>
+
+Returns an RDF::Trine::Model which may contain data about the agent.
+
+=item C<< $agent->endpoint >>
+
+Returns a URL for a SPARQL Protocol endpoint that may be able to provide data
+about the agent.
 
 =item C<< $user->name >>
 
@@ -95,7 +188,7 @@ Please report any bugs to L<http://rt.cpan.org/>.
 
 =head1 SEE ALSO
 
-L<CGI::Auth::FOAF_SSL>, L<CGI::Auth::FOAF_SSL::CertifiedThing>.
+L<CGI::Auth::FOAF_SSL>.
 
 =head1 AUTHOR
 

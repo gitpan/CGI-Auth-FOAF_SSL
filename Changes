@@ -11,11 +11,11 @@ Bug tracker:  <http://rt.cpan.org/Dist/Display.html?Queue=CGI-Auth-FOAF_SSL>
 Maintainer:   Toby Inkster <mailto:tobyink@cpan.org>
 
 1.00_03 [2010-03-26]
+ - Rename new_smiple to new_unauthenticated and document its usage.
  - Rename verify_certificate_by_XXX functions to authenticate_by_XXX, make
    them share common code, document their usage.
  - Use Math::BigInt instead of string comparison for comparing big
    hexadecimal numbers.
- - Rename new_smiple to new_unauthenticated and document its usage.
 
 1.00_02 [2010-03-21]
  - (Update) The rsa and cert vocabularies have been changed recently.
@@ -24,6 +24,13 @@ Maintainer:   Toby Inkster <mailto:tobyink@cpan.org>
  - Documentation improvements
 
 1.00_00 [2010-02-05]
+
+1.000 [2010-07-25]
+ - Constructor returns an object where "->is_secure" is false rather than
+   undef in the case of a certificate with no useful subjectAltName.
+ - (Removal) No longer supports subjectAltName pointing at a
+   foaf:OnlineAccount. subjectAltName is always assumed to point to a
+   foaf:Agent.
 
 0.52 [2009-12-16]
 
