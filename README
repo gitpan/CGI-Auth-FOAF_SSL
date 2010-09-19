@@ -28,7 +28,7 @@ SYNOPSIS
       }
 
 VERSION
-    1.000
+    1.001
 
 DESCRIPTION
     FOAF+SSL (a.k.a. WebID) is a simple authentication scheme described at
@@ -51,9 +51,6 @@ DESCRIPTION
      SSLOptions +StdEnvVars +ExportCertData
 
   Configuration
-    "$CGI::Auth::FOAF_SSL::path_openssl = '/usr/bin/openssl'"
-        Set the path to the OpenSSL binary.
-
     "$CGI::Auth::FOAF_SSL::ua_string = 'MyTool/1.0'"
         Set the User-Agent string for any HTTP requests.
 

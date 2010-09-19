@@ -1,8 +1,7 @@
 package CGI::Auth::FOAF_SSL;
 
 use 5.008;
-use strict;
-use warnings;
+use common::sense;
 
 =head1 NAME
 
@@ -37,11 +36,11 @@ CGI::Auth::FOAF_SSL - authentication using FOAF+SSL (WebID)
 
 =head1 VERSION
 
-1.000
+1.001
 
 =cut
 
-our $VERSION = '1.000';
+our $VERSION = '1.001_01';
 
 =head1 DESCRIPTION
 
@@ -68,24 +67,34 @@ setup:
 
 use CGI::Auth::FOAF_SSL::Agent;
 
-use Carp;
 use CGI;
 use CGI::Session;
-use Encode qw(encode_utf8);
+use Crypt::OpenSSL::X509;
+use Crypt::X509;
+use DateTime;
+use DateTime::Format::Strptime;
 use File::Spec;
-use IPC::Open2;
 use LWP::UserAgent;
 use Math::BigInt try=>'GMP';
+use MIME::Base64 qw[];
 use RDF::TrineShortcuts '0.100';
-use WWW::Finger '0.100';
+
+my $WWW_Finger;
+BEGIN
+{
+	local $@ = undef;
+	$WWW_Finger = 0;
+	eval
+	{
+		require WWW::Finger;
+		die "too old" if $WWW::Finger::VERSION lt '0.100';
+	};
+	$WWW_Finger++ unless defined $@;
+}
 
 =head2 Configuration
 
 =over 4
-
-=item C<< $CGI::Auth::FOAF_SSL::path_openssl = '/usr/bin/openssl' >>
-
-Set the path to the OpenSSL binary.
 
 =item C<< $CGI::Auth::FOAF_SSL::ua_string = 'MyTool/1.0' >>
 
@@ -93,8 +102,7 @@ Set the User-Agent string for any HTTP requests.
 
 =cut
 
-our $path_openssl = '/usr/bin/openssl';
-our $ua_string    = "CGI::Auth::FOAF_SSL/" . $CGI::Auth::FOAF_SSL::VERSION . " ";
+our $ua_string = "CGI::Auth::FOAF_SSL/" . $CGI::Auth::FOAF_SSL::VERSION . " ";
 
 =back
 
@@ -117,22 +125,26 @@ sub new
 	my $class = shift;
 	my $self  = $class->new_unauthenticated(@_);
 	
-	return undef unless $self;
+	return unless $self;
+	
+	my $now = DateTime->now;
+	return if defined $self->{notBefore} && $now < $self->{notBefore};
+	return if defined $self->{notAfter}  && $now > $self->{notAfter};
 	
 	my $verified;
 	
-	if (defined $self->{'subject_alt_names'}->{'URI'})
+	if (defined $self->{'subject_alt_names'}{'uniformResourceIdentifier'})
 	{
-		foreach my $uri (@{ $self->{'subject_alt_names'}->{'URI'} })
+		foreach my $uri (@{ $self->{'subject_alt_names'}{'uniformResourceIdentifier'} })
 		{
 			$verified = $self->authenticate_by_uri($uri);
 			last if $verified;
 		}
 	}
 	
-	if (defined $self->{'subject_alt_names'}->{'EMAIL'} and !$verified)
+	if (defined $self->{'subject_alt_names'}{'rfc822Name'} and !$verified)
 	{
-		foreach my $e (@{ $self->{'subject_alt_names'}->{'EMAIL'} })
+		foreach my $e (@{ $self->{'subject_alt_names'}{'rfc822Name'} })
 		{
 			$verified = $self->authenticate_by_email($e);
 			last if $verified;
@@ -184,69 +196,35 @@ authenticate_by_XXX methods.
 sub new_unauthenticated
 {
 	my $class = shift;
-	my $cert  = shift;
-	my $self  = {};
+	my $pem   = shift;
+	
+	my $self  = bless {}, $class;
 	
 	# Only client certificate secured connections allowed.
-	return unless $cert; 
-	
-	# We use OpenSSL to parse the client certificate. There is an OpenSSL module
-	# in CPAN, but it's poorly documented, so we'll just use the command-line
-	# client instead. You may want to provide a full path here...
-	my $openssl = $CGI::Auth::FOAF_SSL::path_openssl;
-	
-	# First check certificate dates.
-	my $pid = open2(\*READ, \*WRITE, "$openssl x509 -checkend 0");
-	croak "Could not use openssl!\n" unless $pid > 0;
-	print WRITE "$cert\n";
-	my $response = <READ>;
-	return unless $response =~ /will not expire/;
-	close READ;
-	close WRITE;	
-	
-	# Check certificate extensions. It's ugly but should work...
-	$pid = 0;
-	$pid = open2(\*READ, \*WRITE, "$openssl x509 -text");
-	croak "Could not use openssl!\n" unless $pid > 0;
-	print WRITE "$cert\n";
-	my $exponent_line;
-	while (<READ>)
+	return unless $pem; 
+
+	# Let other Perl modules take care of parsing cert.
+	my $COX  = Crypt::OpenSSL::X509->new_from_string($pem);
+	my $der  = MIME::Base64::decode_base64(join "\n", grep { !/^-----(BEGIN|END) CERTIFICATE-----$/ } split /\n/, $pem);
+	my $CX   = Crypt::X509->new(cert => $der);
+
+	# Cert Expiry - check these in authentication process.
+	my $dt_parser = DateTime::Format::Strptime->new(
+		pattern  => '%b %d %T %Y %Z',
+		);
+	$self->{notBefore} = $dt_parser->parse_datetime( $COX->notBefore );
+	$self->{notAfter}  = $dt_parser->parse_datetime( $COX->notAfter );
+
+	# SubjectAltName
+	foreach my $san ( @{$CX->SubjectAltName} )
 	{
-		$exponent_line = $_ if (/^                Exponent: /);
-		last if (/^            X509v3 Subject Alternative Name:/);
+		my ($type, $value) = split /=/, $san, 2;
+		push @{ $self->{subject_alt_names}{$type} }, $value;
 	}
-	my $alt_name = <READ>; 
-	$alt_name =~ s/(^\s*|\s*\r?\n?$)//g;
-	close READ;
-	close WRITE;
-	
-	$self->{'subject_alt_names'} = {};
-	while ($alt_name =~ /(?:\s|\,|^)(URI|email):([^\s\,]+)(?:\s|\,|$)/ig)
-	{
-		push @{ $self->{'subject_alt_names'}->{uc $1} }, $2;
-	}
-	
-#	# Only allow FOAF+SSL certificates.
-#	return undef unless $self->{'subject_alt_names'};
-	
-	# Modulus.
-	$pid = 0;
-	$pid = open2(\*READ, \*WRITE, "$openssl x509 -modulus");
-	croak "Could not use openssl!\n" unless $pid > 0;
-	print WRITE "$cert\n";
-	$response = <READ>;
-	close READ;
-	close WRITE;
-	return unless $response =~ /^Modulus=([0-9A-F]+)$/i;
-	$self->{'cert_modulus_hex'} = $1;
-	
-	# Exponent.
-	return unless $exponent_line =~ /Exponent: (\d+) \(0x([0-9A-F]+)\)/i;
-	$self->{'cert_exponent_dec'} = $1;
-	$self->{'cert_exponent_hex'} = $2;
-	
-	bless $self, $class;
-	
+
+	# RSA key
+	$self->{'cert_modulus_hex'}  = $COX->modulus;
+	$self->{'cert_exponent_hex'} = $COX->exponent;
 	$self->_calculate_modulus_and_exponent_bigints;
 	
 	return $self;
@@ -359,6 +337,8 @@ This is only relevent if you constructed $auth using C<new_unauthenticated>.
 
 sub authenticate_by_email
 {
+	return unless $WWW_Finger;
+	
 	my $self  = shift;
 	my $email = shift;
 	my $fp    = WWW::Finger->new($email);

@@ -186,6 +186,20 @@ my:v_1-000
 			[ rdfs:label "Constructor returns an object where \"->is_secure\" is false rather than undef in the case of a certificate with no useful subjectAltName."@en ]
 		] .
 
+my:v_1-001_01
+	a               :Version ;
+	dc:issued       "2010-09-19"^^xsd:date ;
+	:revision       "1.001_01"^^xsd:string ;
+	:file-release   <http://backpan.cpan.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-1.001_01.tar.gz> ;
+	dcs:changeset [
+		dcs:versus my:v_1-000 ;
+		dcs:item
+			[ rdfs:label "Use Crypt::X509, Crypt::OpenSSL::X509, DateTime and DateTime::Format::Strptime to parse PEM-encoded certificates rather than relying on the OpenSSL command-line client."@en ] ,
+			[ rdfs:label "Remove dependencies on IPC::Open2, Encode and Carp."@en ] ,
+			[ rdfs:label "use common::sense."@en ] ,
+			[ rdfs:label "Make WWW::Finger optional."@en ]
+		] .
+
 #############################################################
 
 my:project
@@ -207,7 +221,7 @@ my:project
 	:release        my:v_0-01 , my:v_0-02 , my:v_0-03 , my:v_0-04 , my:v_0-05 ,
 	                my:v_0-50 , my:v_0-51 , my:v_0-52 ,
 	                my:v_1-00_00 , my:v_1-00_01 , my:v_1-00_02 , my:v_1-00_03 , my:v_1-00_04 ,
-	                my:v_1-000 .
+	                my:v_1-000 , my:v_1-001_01 .
 
 #############################################################
 

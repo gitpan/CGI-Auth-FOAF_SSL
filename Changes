@@ -10,6 +10,14 @@ Home page:    <http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/>
 Bug tracker:  <http://rt.cpan.org/Dist/Display.html?Queue=CGI-Auth-FOAF_SSL>
 Maintainer:   Toby Inkster <mailto:tobyink@cpan.org>
 
+1.001_01 [2010-09-19]
+ - Make WWW::Finger optional.
+ - Remove dependencies on IPC::Open2, Encode and Carp.
+ - Use Crypt::X509, Crypt::OpenSSL::X509, DateTime and
+   DateTime::Format::Strptime to parse PEM-encoded certificates rather than
+   relying on the OpenSSL command-line client.
+ - use common::sense.
+
 1.00_03 [2010-03-26]
  - Rename new_smiple to new_unauthenticated and document its usage.
  - Rename verify_certificate_by_XXX functions to authenticate_by_XXX, make
