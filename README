@@ -5,17 +5,17 @@ SYNOPSIS
       use CGI qw(:all);
       use CGI::Auth::FOAF_SSL;
   
-      my $auth = CGI::Auth::FOAF_SSL->new_from_cgi( CGI->new );
+      my $auth = CGI::Auth::FOAF_SSL->new_from_cgi;
   
-      print header('-type' => 'text/html', '-cookie' => $auth->cookie);
+      print header(-type=>'text/html', -cookie=>$auth->cookie);
   
       if (defined $auth && $auth->is_secure)
       {
-        if (defined $auth->agent)
+        if (defined $auth->subject)
         {
           printf("<p>Hello <a href='%s'>%s</a>!</p>\n",
-                 escapeHTML($auth->agent->homepage),
-                 escapeHTML($auth->agent->name));
+                 escapeHTML($auth->subject->homepage),
+                 escapeHTML($auth->subject->name));
         }
         else
         {
@@ -28,34 +28,32 @@ SYNOPSIS
       }
 
 VERSION
-    1.001
+    1.001 (developer preview)
 
 DESCRIPTION
     FOAF+SSL (a.k.a. WebID) is a simple authentication scheme described at
-    <http://esw.w3.org/topic/foaf+ssl>. This module provides FOAF+SSL
-    authentication for CGI scripts written in Perl.
+    <http://esw.w3.org/topic/foaf+ssl>. This module implements the server
+    end of FOAF+SSL in Perl.
 
-    This requires the web server to be using HTTPS and to be configured to
-    request client certificates and to pass the certificate details on as
-    environment variables for scripts. If you are using Apache, this means
-    that you want to set the following directives in your SSL virtual host
-    setup:
+    It is suitable for handling authentication using FOAF+SSL over HTTPS.
+    Your web server needs to be using HTTPS, configured to request client
+    certificates, and make the certificate PEM available to your script. If
+    you are using Apache, this means that you want to set the following
+    directives in your SSL virtual host setup:
 
      SSLEngine on
-     # SSLCipherSuite (see Apache documentation)
-     # SSLProtocol (see Apache documentation)
-     # SSLCertificateFile (see Apache documentation)
-     # SSLCertificateKeyFile (see Apache documentation)
      SSLVerifyClient optional_no_ca
      SSLVerifyDepth  1
      SSLOptions +StdEnvVars +ExportCertData
 
   Configuration
-    "$CGI::Auth::FOAF_SSL::ua_string = 'MyTool/1.0'"
+    *   "$CGI::Auth::FOAF_SSL::ua_string = 'MyTool/1.0'"
+
         Set the User-Agent string for any HTTP requests.
 
   Constructors
-    "$auth = CGI::Auth::FOAF_SSL->new($pem_encoded)"
+    *   "new($pem_encoded)"
+
         Performs FOAF+SSL authentication on a PEM-encoded key. If
         authentication is completely unsuccessful, returns undef. Otherwise,
         returns a CGI::Auth::FOAF_SSL object. Use "is_secure" to check if
@@ -63,80 +61,36 @@ DESCRIPTION
 
         You probably want to use "new_from_cgi" instead.
 
-    "$auth = CGI::Auth::FOAF_SSL->new_from_cgi($cgi_object)"
+        (DER encoded certificates should work too.)
+
+    *   "new_from_cgi($cgi_object)"
+
         Performs FOAF+SSL authentication on a CGI object. This is a wrapper
         around "new" which extracts the PEM-encoded client certificate from
         the CGI request. It has the same return values as "new".
 
         If $cgi_object is omitted, uses "CGI->new" instead.
 
-    "$auth = CGI::Auth::FOAF_SSL->new_unauthenticated($pem_encoded)"
-        Creates a CGI::Auth::FOAF_SSL object without doing any
-        authentication.
-
-        It's very unlikely you want to do this. If you do create an
-        unauthenticated object, then you'll probably want to do some
-        authentication using the authenticate_by_XXX methods.
-
   Public Methods
-    "$bool = $auth->is_secure"
-        Returns true iff the authentication process was completely
+    *   "is_secure"
+
+        Returns true iff the FOAF+SSL authentication process was completely
         successful.
 
-    "$agent = $auth->agent"
-        Returns a CGI::Auth::FOAF_SSL::Agent object which represents the
-        agent making the request.
+    *   "subject"
 
-    "$cookie = $auth->cookie"
+        Returns a CGI::Auth::FOAF_SSL::Agent object which represents the
+        subject of the certificate.
+
+        This method has aliases "agent" and "certified_thing" for
+        back-compat reasons.
+
+    *   "cookie"
+
         HTTP cookie related to the authentication process. Sending this to
         the client isn't strictly necessary, but it allows for a session to
         be established, greatly speeding up subsequent accesses. See also
         the COOKIES section of this documentation.
-
-    "$ok = $auth->authenticate_by_uri($uri)"
-        Checks if $uri claims that $auth's key identifies it.
-
-        This is only relevent if you constructed $auth using
-        "new_unauthenticated".
-
-    "$ok = $auth->authenticate_by_email($email_address)"
-        Checks if $email_address claims that $auth's key identifies it (via
-        WebFinger/Fingerpoint).
-
-        This is only relevent if you constructed $auth using
-        "new_unauthenticated".
-
-    "$ok = $auth->authenticate_by_sparql($uri, $endpoint)"
-        Checks if $endpoint claims that $auth's key identifies $uri.
-        $endpoint may be a SPARQL endpoint URI or an RDF::Trine::Model.
-
-        This is only relevent if you constructed $auth using
-        "new_unauthenticated".
-
-  Utility Methods
-    "$model = $auth->get_trine_model($uri)"
-        Get an RDF::Trine::Model corresponding to a URI.
-
-    "$bi = $auth->make_bigint_from_node($trine_node)"
-        Turns an RDF::Trine::Node::Literal object into a Math::BigInt
-        representing the same number.
-
-        There are optional named parameters for providing a fallback in the
-        case where $trine_node has an unrecognised datatype or is not a
-        literal.
-
-         $bi = $auth->make_bigint_from_node(
-            $trine_node, fallback=>$other_node, fallback_type=>'hex');
-
-        The authenticate_by_XXX methods use this.
-
-    "$results = $auth->execute_query($sparql)"
-        Returns the results of a SPARQL query. Uses the certificate
-        subject's RDF file as a data source, or the certificate subject's
-        SPARQL endpoint.
-
-        See RDF::TrineShortcuts function rdf_query for an explanation of the
-        return format.
 
 COOKIES
     FOAF+SSL is entirely RESTful: there is no state kept between requests.
@@ -192,7 +146,9 @@ BUGS
     Please report any bugs to <http://rt.cpan.org/>.
 
 SEE ALSO
-    Helper module: CGI::Auth::FOAF_SSL::Agent
+    Helper module: CGI::Auth::FOAF_SSL::Agent.
+
+    Advanced developer documentation: CGI::Auth::FOAF_SSL::Advanced.
 
     Related modules: CGI, RDF::Trine, RDF::ACL.
 
@@ -209,9 +165,8 @@ AUTHOR
     Toby Inkster, <tobyink@cpan.org>
 
 COPYRIGHT AND LICENSE
-    Copyright (C) 2009-2010 by Toby Inkster
+    Copyright (C) 2009-2011 by Toby Inkster
 
     This library is free software; you can redistribute it and/or modify it
-    under the same terms as Perl itself, either Perl version 5.8 or, at your
-    option, any later version of Perl 5 you may have available.
+    under the same terms as Perl itself.
 

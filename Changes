@@ -10,6 +10,13 @@ Home page:    <http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/>
 Bug tracker:  <http://rt.cpan.org/Dist/Display.html?Queue=CGI-Auth-FOAF_SSL>
 Maintainer:   Toby Inkster <mailto:tobyink@cpan.org>
 
+1.001_02 [2011-01-18]
+ - Clean up code; add accessors to peek at much of the module's internal
+   data.
+ - Move some obscure documentation to a separate file.
+ - No longer use Crypt::OpenSSL::X509 and DateTime::Format::Strptime.
+ - use Crypt::X509 '0.50'.
+
 1.001_01 [2010-09-19]
  - Make WWW::Finger optional.
  - Remove dependencies on IPC::Open2, Encode and Carp.

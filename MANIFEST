@@ -13,6 +13,7 @@ t/01basic.t
 
 lib/CGI/Auth/FOAF_SSL.pm
 lib/CGI/Auth/FOAF_SSL/Agent.pm
+lib/CGI/Auth/FOAF_SSL/Advanced.pod
 
 inc/Module/AutoInstall.pm
 inc/Module/Install/AutoInstall.pm

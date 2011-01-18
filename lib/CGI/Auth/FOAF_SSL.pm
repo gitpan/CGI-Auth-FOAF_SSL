@@ -12,17 +12,17 @@ CGI::Auth::FOAF_SSL - authentication using FOAF+SSL (WebID)
   use CGI qw(:all);
   use CGI::Auth::FOAF_SSL;
   
-  my $auth = CGI::Auth::FOAF_SSL->new_from_cgi( CGI->new );
+  my $auth = CGI::Auth::FOAF_SSL->new_from_cgi;
   
-  print header('-type' => 'text/html', '-cookie' => $auth->cookie);
+  print header(-type=>'text/html', -cookie=>$auth->cookie);
   
   if (defined $auth && $auth->is_secure)
   {
-    if (defined $auth->agent)
+    if (defined $auth->subject)
     {
       printf("<p>Hello <a href='%s'>%s</a>!</p>\n",
-             escapeHTML($auth->agent->homepage),
-             escapeHTML($auth->agent->name));
+             escapeHTML($auth->subject->homepage),
+             escapeHTML($auth->subject->name));
     }
     else
     {
@@ -36,29 +36,21 @@ CGI::Auth::FOAF_SSL - authentication using FOAF+SSL (WebID)
 
 =head1 VERSION
 
-1.001
-
-=cut
-
-our $VERSION = '1.001_01';
+1.001 (developer preview)
 
 =head1 DESCRIPTION
 
 FOAF+SSL (a.k.a. WebID) is a simple authentication scheme described
-at L<http://esw.w3.org/topic/foaf+ssl>. This module provides FOAF+SSL
-authentication for CGI scripts written in Perl.
+at L<http://esw.w3.org/topic/foaf+ssl>. This module implements the server
+end of FOAF+SSL in Perl.
 
-This requires the web server to be using HTTPS and to be configured to
-request client certificates and to pass the certificate details on as
-environment variables for scripts. If you are using Apache, this means
-that you want to set the following directives in your SSL virtual host
-setup:
+It is suitable for handling authentication using FOAF+SSL over HTTPS.
+Your web server needs to be using HTTPS, configured to request client
+certificates, and make the certificate PEM available to your script. If you
+are using Apache, this means that you want to set the following
+directives in your SSL virtual host setup:
 
  SSLEngine on
- # SSLCipherSuite (see Apache documentation)
- # SSLProtocol (see Apache documentation)
- # SSLCertificateFile (see Apache documentation)
- # SSLCertificateKeyFile (see Apache documentation)
  SSLVerifyClient optional_no_ca
  SSLVerifyDepth  1
  SSLOptions +StdEnvVars +ExportCertData
@@ -66,43 +58,58 @@ setup:
 =cut
 
 use CGI::Auth::FOAF_SSL::Agent;
-
 use CGI;
 use CGI::Session;
-use Crypt::OpenSSL::X509;
-use Crypt::X509;
+use Crypt::X509 '0.50';
 use DateTime;
-use DateTime::Format::Strptime;
 use File::Spec;
 use LWP::UserAgent;
-use Math::BigInt try=>'GMP';
+use Math::BigInt try => 'GMP';
 use MIME::Base64 qw[];
 use RDF::TrineShortcuts '0.100';
+use Scalar::Util qw[blessed refaddr];
+
+use constant {
+	VALIDATION_PEM     => 1,
+	VALIDATION_DATES   => 2,
+	VALIDATION_WEBID   => 3,
+	};
+	
+our $VERSION;
+our $ua_string;
 
 my $WWW_Finger;
+my ($AGENT, $MODEL, $SESSION); # inside-out objects
+
 BEGIN
 {
-	local $@ = undef;
+	$VERSION = '1.001_02';
+	$ua_string = sprintf('%s/%s ', __PACKAGE__, $VERSION);	
+
 	$WWW_Finger = 0;
-	eval
 	{
-		require WWW::Finger;
-		die "too old" if $WWW::Finger::VERSION lt '0.100';
-	};
-	$WWW_Finger++ unless defined $@;
+		local $@ = undef;
+		eval
+		{
+			require WWW::Finger;
+			die "too old"
+				if $WWW::Finger::VERSION lt '0.100';
+		};
+		$WWW_Finger++
+			unless defined $@;
+	}
+	$AGENT   = {};
+	$MODEL   = {};
+	$SESSION = {};
 }
 
 =head2 Configuration
 
 =over 4
 
-=item C<< $CGI::Auth::FOAF_SSL::ua_string = 'MyTool/1.0' >>
+=item * C<< $CGI::Auth::FOAF_SSL::ua_string = 'MyTool/1.0' >>
 
 Set the User-Agent string for any HTTP requests.
-
-=cut
-
-our $ua_string = "CGI::Auth::FOAF_SSL/" . $CGI::Auth::FOAF_SSL::VERSION . " ";
 
 =back
 
@@ -110,7 +117,7 @@ our $ua_string = "CGI::Auth::FOAF_SSL/" . $CGI::Auth::FOAF_SSL::VERSION . " ";
 
 =over 4
 
-=item C<< $auth = CGI::Auth::FOAF_SSL->new($pem_encoded) >>
+=item * C<< new($pem_encoded) >>
 
 Performs FOAF+SSL authentication on a PEM-encoded key. If authentication is
 completely unsuccessful, returns undef. Otherwise, returns a CGI::Auth::FOAF_SSL
@@ -118,46 +125,48 @@ object. Use C<is_secure> to check if authentication was I<completely> successful
 
 You probably want to use C<new_from_cgi> instead.
 
+(DER encoded certificates should work too.)
+
 =cut
 
 sub new
 {
-	my $class = shift;
-	my $self  = $class->new_unauthenticated(@_);
+	my ($class, $pem, @params) = @_;
+	my $self = $class->new_unauthenticated($pem, @params);
 	
-	return unless $self;
+	return unless defined $self;
+	return unless $self->validation(VALIDATION_PEM);
 	
 	my $now = DateTime->now;
-	return if defined $self->{notBefore} && $now < $self->{notBefore};
-	return if defined $self->{notAfter}  && $now > $self->{notAfter};
+	return if defined $self->cert_not_before && $now < $self->cert_not_before;
+	return if defined $self->cert_not_after  && $now > $self->cert_not_after;
+
+	$self->validation(VALIDATION_DATES);
 	
 	my $verified;
 	
-	if (defined $self->{'subject_alt_names'}{'uniformResourceIdentifier'})
+	if (defined $self->{subject_alt_names}{uniformResourceIdentifier})
 	{
-		foreach my $uri (@{ $self->{'subject_alt_names'}{'uniformResourceIdentifier'} })
+		foreach my $uri (@{ $self->{subject_alt_names}{uniformResourceIdentifier} })
 		{
 			$verified = $self->authenticate_by_uri($uri);
 			last if $verified;
 		}
 	}
 	
-	if (defined $self->{'subject_alt_names'}{'rfc822Name'} and !$verified)
+	if (defined $self->{subject_alt_names}{rfc822Name} and !$verified)
 	{
-		foreach my $e (@{ $self->{'subject_alt_names'}{'rfc822Name'} })
+		foreach my $e (@{ $self->{subject_alt_names}{rfc822Name} })
 		{
 			$verified = $self->authenticate_by_email($e);
 			last if $verified;
 		}
 	}
 	
-	$self->load_personal_info
-		if $verified;
-	
 	return $self;
 }
 
-=item C<< $auth = CGI::Auth::FOAF_SSL->new_from_cgi($cgi_object) >>
+=item * C<< new_from_cgi($cgi_object) >>
 
 Performs FOAF+SSL authentication on a CGI object. This is a wrapper around
 C<new> which extracts the PEM-encoded client certificate from the CGI
@@ -169,51 +178,38 @@ If $cgi_object is omitted, uses C<< CGI->new >> instead.
 
 sub new_from_cgi
 {
-	my $class = shift;
-	my $cgi   = shift || CGI->new;
+	my ($class, $cgi, @params) = @_;
+	$cgi ||= CGI->new;
 	
-	return undef unless $cgi->https;
+	return unless $cgi->https;
 	
 	# This should work, but doesn't!!
 	# my $cert = $cgi->https('SSL_CLIENT_CERT');
 	
 	# This does work, but is less elegant.
-	my $cert = $ENV{'SSL_CLIENT_CERT'};
+	my $cert = $ENV{SSL_CLIENT_CERT};
 	
-	return $class->new($cert);
+	return $class->new($cert, @params);
 }
 
-=item C<< $auth = CGI::Auth::FOAF_SSL->new_unauthenticated($pem_encoded) >>
-
-Creates a CGI::Auth::FOAF_SSL object without doing any authentication.
-
-It's very unlikely you want to do this. If you do create an unauthenticated
-object, then you'll probably want to do some authentication using the
-authenticate_by_XXX methods.
-
-=cut
-
+# Documentation in Advanced.pod
 sub new_unauthenticated
 {
-	my $class = shift;
-	my $pem   = shift;
+	my ($class, $pem) = @_;	
+	my $self  = bless { pem => $pem }, $class;
 	
-	my $self  = bless {}, $class;
-	
-	# Only client certificate secured connections allowed.
+	# Need a PEM-encoded cert.
 	return unless $pem; 
 
-	# Let other Perl modules take care of parsing cert.
-	my $COX  = Crypt::OpenSSL::X509->new_from_string($pem);
-	my $der  = MIME::Base64::decode_base64(join "\n", grep { !/^-----(BEGIN|END) CERTIFICATE-----$/ } split /\n/, $pem);
-	my $CX   = Crypt::X509->new(cert => $der);
+	# Convert PEM to DER - easy!
+	my $der = MIME::Base64::decode_base64(join "\n", grep { !/^-----(BEGIN|END) CERTIFICATE-----$/ } split /\n/, $pem);
+	
+	# Use Crypt::X509 to look inside the DER/ASN.1.
+	my $CX = Crypt::X509->new(cert => $der);
 
 	# Cert Expiry - check these in authentication process.
-	my $dt_parser = DateTime::Format::Strptime->new(
-		pattern  => '%b %d %T %Y %Z',
-		);
-	$self->{notBefore} = $dt_parser->parse_datetime( $COX->notBefore );
-	$self->{notAfter}  = $dt_parser->parse_datetime( $COX->notAfter );
+	$self->cert_not_before( $CX->not_before );
+	$self->cert_not_after( $CX->not_after );
 
 	# SubjectAltName
 	foreach my $san ( @{$CX->SubjectAltName} )
@@ -223,32 +219,13 @@ sub new_unauthenticated
 	}
 
 	# RSA key
-	$self->{'cert_modulus_hex'}  = $COX->modulus;
-	$self->{'cert_exponent_hex'} = $COX->exponent;
-	$self->_calculate_modulus_and_exponent_bigints;
+	my $rsa = $CX->pubkey_components;
+	$self->cert_modulus($rsa->{modulus});
+	$self->cert_exponent($rsa->{exponent});
+	
+	$self->validation(VALIDATION_PEM);
 	
 	return $self;
-}
-
-sub _calculate_modulus_and_exponent_bigints
-{
-	my $self = shift;
-	
-	foreach my $part (qw(exponent modulus))
-	{
-		if ($self->{"cert_${part}_dec"})
-		{
-			my $dec = $self->{"cert_${part}_dec"};
-			$dec =~ s/[^0-9]//g;
-			$self->{"cert_${part}"} = Math::BigInt->new($dec);
-		}
-		elsif ($self->{"cert_${part}_hex"})
-		{
-			my $hex = $self->{"cert_${part}_hex"};
-			$hex =~ s/[^0-9A-F]//ig;
-			$self->{"cert_${part}"} = Math::BigInt->from_hex("0x$hex");
-		}
-	}
 }
 
 =back
@@ -257,44 +234,46 @@ sub _calculate_modulus_and_exponent_bigints
 
 =over 4
 
-=item C<< $bool = $auth->is_secure >>
+=item * C<< is_secure >>
 
-Returns true iff the authentication process was completely successful.
+Returns true iff the FOAF+SSL authentication process was completely successful.
 
 =cut
 
 sub is_secure
 {
-	my $this = shift;
-	return $this->{'validation'} eq 'agent';
+	my ($self) = @_;
+	return ($self->validation == VALIDATION_WEBID) ? 1 : 0;
 }
 
-=item C<< $agent = $auth->agent >>
+=item * C<< subject >>
 
-Returns a L<CGI::Auth::FOAF_SSL::Agent> object which represents the agent
-making the request. 
+Returns a L<CGI::Auth::FOAF_SSL::Agent> object which represents the subject
+of the certificate. 
+
+This method has aliases C<agent> and C<certified_thing> for back-compat
+reasons.
 
 =cut
 
-sub agent
+sub subject
 {
-	my $this = shift;
-	return $this->{'agent'};
+	my ($self) = @_;
+
+	$AGENT->{ refaddr($self) } ||= CGI::Auth::FOAF_SSL::Agent->new(
+		$self->subject_uri,
+		$self->subject_model,
+		$self->subject_endpoint,
+		);
+
+	return $AGENT->{ refaddr($self) };
 }
 
-sub account
-{
-	my $this = shift;
-	return undef;
-}
+*certified_thing = \&subject;
+*agent           = \&subject;
+*account         = sub { return; };
 
-sub certified_thing
-{
-	my $this = shift;
-	return $this->{'thing'};
-}
-
-=item C<< $cookie = $auth->cookie >>
+=item * C<< cookie >>
 
 HTTP cookie related to the authentication process. Sending this to the
 client isn't strictly necessary, but it allows for a session to be
@@ -305,101 +284,89 @@ COOKIES section of this documentation.
 
 sub cookie
 {
-	my $this = shift;
-	return $this->{'session'}->cookie;
+	my ($self) = @_;
+	return $self->session->cookie;
 }
 
-=item C<< $ok = $auth->authenticate_by_uri($uri) >>
-
-Checks if $uri claims that $auth's key identifies it.
-
-This is only relevent if you constructed $auth using C<new_unauthenticated>.
-
-=cut
-
+# Documentation in Advanced.pod
 sub authenticate_by_uri
 {
-	my $self  = shift;
-	my $uri   = shift;
-	my $model = $self->get_trine_model($uri);
-	
+	my ($self, $uri) = @_;
+	my $model = $self->get_trine_model($uri);	
 	return $self->authenticate_by_sparql($uri, $model);
 }
 
-=item C<< $ok = $auth->authenticate_by_email($email_address) >>
-
-Checks if $email_address claims that $auth's key identifies it
-(via WebFinger/Fingerpoint).
-
-This is only relevent if you constructed $auth using C<new_unauthenticated>.
-
-=cut
-
+# Documentation in Advanced.pod
 sub authenticate_by_email
 {
-	return unless $WWW_Finger;
+	return unless $WWW_Finger;	
 	
-	my $self  = shift;
-	my $email = shift;
-	my $fp    = WWW::Finger->new($email);
+	my ($self, $email) = @_;	
+	my $fp = WWW::Finger->new($email);
 	
-	return 0 unless defined $fp->endpoint and defined $fp->webid;
+	return unless defined $fp;
+	return unless defined $fp->endpoint;
+	return unless defined $fp->webid;
 	
 	return $self->authenticate_by_sparql($fp->webid, $fp->endpoint, $fp);
 }
 
-=item C<< $ok = $auth->authenticate_by_sparql($uri, $endpoint) >>
-
-Checks if $endpoint claims that $auth's key identifies $uri. $endpoint may be
-a SPARQL endpoint URI or an RDF::Trine::Model.
-
-This is only relevent if you constructed $auth using C<new_unauthenticated>.
-
-=cut
-
+# Documentation in Advanced.pod
 sub authenticate_by_sparql
 {
 	my ($self, $uri, $model, $fp) = @_;
 	
-	my $query_string = sprintf("PREFIX cert: <http://www.w3.org/ns/auth/cert#>\n"
-	                          ."PREFIX rsa: <http://www.w3.org/ns/auth/rsa#>\n"
-	                          ."SELECT ?modulus ?exponent ?decExponent ?hexModulus\n"
-	                          ."WHERE\n"
-	                          ."{\n"
-	                          ."    ?key\n"
-	                          ."        cert:identity <%s> ;\n"
-	                          ."        rsa:modulus ?modulus ;\n"
-	                          ."        rsa:public_exponent ?exponent .\n"
-	                          ."    OPTIONAL { ?modulus cert:hex ?hexModulus . }\n"
-	                          ."    OPTIONAL { ?exponent cert:decimal ?decExponent . }\n"
-	                          ."}\n",
-	                          $uri);
+	my $query_string = sprintf(<<'SPARQL', $uri);
+PREFIX cert: <http://www.w3.org/ns/auth/cert#>
+PREFIX rsa: <http://www.w3.org/ns/auth/rsa#>
+SELECT
+	?modulus
+	?exponent
+	?decExponent
+	?hexModulus
+WHERE
+{
+	?key
+		cert:identity <%s> ;
+		rsa:modulus ?modulus ;
+		rsa:public_exponent ?exponent .
+
+	OPTIONAL { ?modulus cert:hex ?hexModulus . }
+	OPTIONAL { ?exponent cert:decimal ?decExponent . }
+}
+SPARQL
+
 	my $results = rdf_query($query_string, $model);
 	
 	RESULT: while (my $result = $results->next)
 	{
 		my $correct_modulus  = $self->make_bigint_from_node(
-			$result->{'modulus'},  fallback => $result->{'hexModulus'},  fallback_type=>'hex');
+			$result->{modulus},
+			fallback      => $result->{hexModulus},
+			fallback_type =>'hex',
+			);
+		next RESULT
+			unless $correct_modulus == $self->cert_modulus;
 			
 		my $correct_exponent = $self->make_bigint_from_node(
-			$result->{'exponent'}, fallback => $result->{'decExponent'}, fallback_type=>'dec');
+			$result->{exponent},
+			fallback      => $result->{decExponent},
+			fallback_type =>'dec',
+			);
+		next RESULT
+			unless $correct_exponent == $self->cert_exponent;
 
-		next RESULT unless $correct_modulus  == $self->{'cert_modulus'};
-		next RESULT unless $correct_exponent == $self->{'cert_exponent'};
-
-		$self->{'validation'}       = 'cert';
-		$self->{'cert_subject_uri'} = $uri;
+		$self->validation(VALIDATION_WEBID);
+		$self->subject_uri($uri);
 		
-		if (ref $model && $model->isa('RDF::Trine::Model'))
+		if (blessed($model) and $model->isa('RDF::Trine::Model'))
 		{
-			$self->{'cert_subject_model'} = $model;
+			$self->subject_model($model);
 		}
 		else
 		{
-			$self->{'cert_subject_uri'}         = $uri;
-			$self->{'cert_subject_endpoint'}    = $model;
-			$self->{'cert_subject_fingerpoint'} = $fp
-				if defined $fp;
+			$self->subject_uri($uri);
+			$self->subject_endpoint($model);
 		}
 		
 		return 1;
@@ -408,90 +375,156 @@ sub authenticate_by_sparql
 	return 0;
 }
 
-sub load_personal_info
+# Documentation in Advanced.pod
+sub validation
 {
-	my $self = shift;
-	
-	return 0
-		unless defined $self and $self->{'validation'} eq 'cert';
-	
-	$self->{'cert_subject_type'} = 'Agent';
-	$self->{'agent'} = CGI::Auth::FOAF_SSL::Agent->new(
-		$self->{'cert_subject_uri'},
-		$self->{'cert_subject_model'},
-		$self->{'cert_subject_endpoint'});
-	$self->{'thing'} = $self->{'agent'};
-	$self->{'validation'} = 'agent';
-	
-	return 1;
+	my ($self) = shift;
+	if (@_)
+	{
+		$self->{validation} = shift;
+	}
+	return $self->{validation};
 }
 
-
-=back
-
-=head2 Utility Methods
-
-=over 4
-
-=item C<< $model = $auth->get_trine_model($uri) >>
-
-Get an RDF::Trine::Model corresponding to a URI.
-
-=cut
-
-sub get_trine_model
+# Documentation in Advanced.pod
+sub cert_modulus
 {
-	my $this = shift;
-	my $uri  = shift;
-	
-	# Session for caching data into.
-	unless (defined $this->{'session'})
+	my ($self) = shift;
+	if (@_)
 	{
-		$this->{'session'} = CGI::Session->new('driver:file', undef, {Directory => File::Spec->tmpdir});
-		$this->{'session'}->expire('+1h');
+		my $new = shift;
+		$new = Math::BigInt->new($new)
+			unless blessed($new) && $new->isa('Math::BigInt');
+		$self->{cert_modulus} = $new;
+	}
+	return $self->{cert_modulus};
+}
+
+# Documentation in Advanced.pod
+sub cert_exponent
+{
+	my ($self) = shift;
+	if (@_)
+	{
+		my $new = shift;
+		$new = Math::BigInt->new($new)
+			unless blessed($new) && $new->isa('Math::BigInt');
+		$self->{cert_exponent} = $new;
+	}
+	return $self->{cert_exponent};
+}
+
+# Documentation in Advanced.pod
+sub cert_not_before
+{
+	my ($self) = shift;
+	if (@_)
+	{
+		my $new = shift;
+		$new = DateTime->from_epoch(epoch => $new)
+			unless blessed($new) && $new->isa('DateTime');
+		$self->{cert_not_before} = $new;
+	}
+	return $self->{cert_not_before};
+}
+
+# Documentation in Advanced.pod
+sub cert_not_after
+{
+	my ($self) = shift;
+	if (@_)
+	{
+		my $new = shift;
+		$new = DateTime->from_epoch(epoch => $new)
+			unless blessed($new) && $new->isa('DateTime');
+		$self->{cert_not_after} = $new;
+	}
+	return $self->{cert_not_after};
+}
+
+# Documentation in Advanced.pod
+sub subject_uri
+{
+	my ($self) = shift;
+	if (@_)
+	{
+		$self->{subject_uri} = shift;
+	}
+	return $self->{subject_uri};
+}
+
+# Documentation in Advanced.pod
+sub subject_model
+{
+	my ($self) = shift;
+	if (@_)
+	{
+		$MODEL->{ refaddr($self) } = shift;
+	}
+	return $MODEL->{ refaddr($self) };
+}
+
+# Documentation in Advanced.pod
+sub subject_endpoint
+{
+	my ($self) = shift;
+	if (@_)
+	{
+		$self->{subject_endpoint} = shift;
+	}
+	return $self->{subject_endpoint};
+}
+
+# Documentation in Advanced.pod
+sub session
+{
+	my ($self) = shift;
+	
+	if (@_)
+	{
+		$SESSION->{ refaddr($self) } = shift;
+	}
+
+	unless (defined $SESSION->{ refaddr($self) })
+	{
+		my $s = CGI::Session->new('driver:file', undef, {Directory => File::Spec->tmpdir});
+		$s->expire('+1h');
+		$SESSION->{ refaddr($self) } = $s;
 	}
 	
-	# Check to see if this URI has already been retrieved.
-	if (defined $this->{'session'}->param($uri)
-	and length $this->{'session'}->param($uri))
+	return $SESSION->{ refaddr($self) };
+}
+
+# Documentation in Advanced.pod
+sub get_trine_model
+{
+	my ($self, $uri) = @_;
+	
+	# Check to see if this URI has already been retrieved
+	# in our session.
+	if (defined $self->session->param($uri)
+	and length $self->session->param($uri))
 	{
-		return rdf_parse($this->{'session'}->param($uri),
+		return rdf_parse($self->session->param($uri),
 			base=>$uri , type=>'ntriples');
 	}
 	
-	my $ua = LWP::UserAgent->new(agent=>$CGI::Auth::FOAF_SSL::ua_string); 
+	my $ua = LWP::UserAgent->new(agent => $ua_string); 
 	$ua->default_headers->push_header('Accept' => "application/rdf+xml, text/turtle, application/x-turtle, application/xhtml+xml;q=0.9, text/html;q=0.9, */*;q=0.1");
 	my $response = $ua->get($uri);
-	return unless length $response->content;
-	my $model    = rdf_parse($response);
+	return unless $response->is_success && length $response->content;
+	my $model = rdf_parse($response);
 	
-	$this->{'session'}->param($uri, rdf_string($model, 'ntriples'));
-	$this->{'session'}->flush;
+	$self->session->param($uri, rdf_string($model, 'ntriples'));
+	$self->session->flush;
 	
 	return $model;
 }
 
-=item C<< $bi = $auth->make_bigint_from_node($trine_node) >>
-
-Turns an RDF::Trine::Node::Literal object into a Math::BigInt
-representing the same number.
-
-There are optional named parameters for providing a fallback
-in the case where $trine_node has an unrecognised datatype or
-is not a literal.
-
- $bi = $auth->make_bigint_from_node(
-    $trine_node, fallback=>$other_node, fallback_type=>'hex');
-
-The authenticate_by_XXX methods use this.
-
-=cut
-
+# Documentation in Advanced.pod
 sub make_bigint_from_node
 {
-	my $self = shift;
-	my $node = shift;
-	my %opts = @_;
+	my ($self, $node, %opts) = @_;
 	
 	if ($node->is_literal)
 	{
@@ -551,32 +584,14 @@ sub make_bigint_from_node
 	}
 }
 
-=item C<< $results = $auth->execute_query($sparql) >>
-
-Returns the results of a SPARQL query. Uses the certificate subject's
-RDF file as a data source, or the certificate subject's SPARQL endpoint.
-
-See L<RDF::TrineShortcuts> function rdf_query for an explanation of the
-return format.
-
-=cut
-
+# Documentation in Advanced.pod
 sub execute_query 
 {
-	my $rv = shift;
-	my $q  = shift;
+	my ($self, $q) = @_;
 	
-	if (defined $rv->{'cert_subject_model'})
-	{
-		return rdf_query($q, $rv->{'cert_subject_model'});
-	}
-	
-	if (defined $rv->{'cert_subject_endpoint'})
-	{
-		return rdf_query($q, $rv->{'cert_subject_endpoint'});
-	}
-	
-	return undef;
+	my $target = $self->subject_model || $self->subject_endpoint;
+	return rdf_query($q, $target) if defined $target;
+	return;
 }
 
 1;
@@ -644,7 +659,10 @@ Please report any bugs to L<http://rt.cpan.org/>.
 =head1 SEE ALSO
 
 Helper module:
-L<CGI::Auth::FOAF_SSL::Agent>
+L<CGI::Auth::FOAF_SSL::Agent>.
+
+Advanced developer documentation:
+L<CGI::Auth::FOAF_SSL::Advanced>.
 
 Related modules:
 L<CGI>, L<RDF::Trine>, L<RDF::ACL>.
@@ -665,10 +683,9 @@ Toby Inkster, E<lt>tobyink@cpan.orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2009-2010 by Toby Inkster
+Copyright (C) 2009-2011 by Toby Inkster
 
 This library is free software; you can redistribute it and/or modify
-it under the same terms as Perl itself, either Perl version 5.8 or,
-at your option, any later version of Perl 5 you may have available.
+it under the same terms as Perl itself.
 
 =cut

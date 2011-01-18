@@ -4,7 +4,7 @@ use RDF::Query;
 use RDF::Query::Client;
 use RDF::Trine;
 
-our $VERSION = '1.001_01';
+our $VERSION = '1.001_02';
 
 sub new
 {
@@ -138,11 +138,11 @@ CGI::Auth::FOAF_SSL::Agent - an agent (in the FOAF sense)
 
 =over 4
 
-=item C<< $agent = CGI::Auth::FOAF_SSL::Agent->new($id, $model, $ep) >>
+=item C<< new($webid, $model, $endpoint) >>
 
-Create a new object representing an agent. $id is an identfying URI, and is
+Create a new object representing an agent. $webid is an identfying URI, and is
 required. $model is an RDF::Trine::Model containing data about the agent, or
-may be undef. $ep is a SPARQL endpoint URL, or may be undef.
+may be undef. $endpoint is a SPARQL endpoint URL, or may be undef.
 
 =back
 
@@ -150,32 +150,32 @@ may be undef. $ep is a SPARQL endpoint URL, or may be undef.
 
 =over 4
 
-=item C<< $agent->identity >>
+=item C<< identity >>
 
 Returns the URI identifying the agent.
 
-=item C<< $agent->model >>
+=item C<< model >>
 
 Returns an RDF::Trine::Model which may contain data about the agent.
 
-=item C<< $agent->endpoint >>
+=item C<< endpoint >>
 
 Returns a URL for a SPARQL Protocol endpoint that may be able to provide data
 about the agent.
 
-=item C<< $user->name >>
+=item C<< name >>
 
 The name of an agent (e.g. a person's name).
 
-=item C<< $user->homepage >>
+=item C<< homepage >>
 
 Gets the URL of the agent's homepage.
 
-=item C<< $user->img >>
+=item C<< img >>
 
 Gets the URL of an image or depiction of the agent.
 
-=item C<< $user->mbox >>
+=item C<< mbox >>
 
 Gets an e-mail address (including "mailto:") to communicate with
 the agent.
@@ -196,11 +196,10 @@ Toby Inkster, E<lt>tobyink@cpan.orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2009-2010 by Toby Inkster
+Copyright (C) 2009-2011 by Toby Inkster
 
 This library is free software; you can redistribute it and/or modify
-it under the same terms as Perl itself, either Perl version 5.8 or,
-at your option, any later version of Perl 5 you may have available.
+it under the same terms as Perl itself.
 
 =cut
 

@@ -200,6 +200,20 @@ my:v_1-001_01
 			[ rdfs:label "Make WWW::Finger optional."@en ]
 		] .
 
+my:v_1-001_02
+	a               :Version ;
+	dc:issued       "2011-01-18"^^xsd:date ;
+	:revision       "1.001_02"^^xsd:string ;
+	:file-release   <http://backpan.cpan.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-1.001_02.tar.gz> ;
+	dcs:changeset [
+		dcs:versus my:v_1-001_01 ;
+		dcs:item
+			[ rdfs:label "No longer use Crypt::OpenSSL::X509 and DateTime::Format::Strptime."@en ] ,
+			[ rdfs:label "use Crypt::X509 '0.50'."@en ] ,
+			[ rdfs:label "Clean up code; add accessors to peek at much of the module's internal data."@en ] ,
+			[ rdfs:label "Move some obscure documentation to a separate file."@en ]
+		] .
+
 #############################################################
 
 my:project
@@ -221,7 +235,7 @@ my:project
 	:release        my:v_0-01 , my:v_0-02 , my:v_0-03 , my:v_0-04 , my:v_0-05 ,
 	                my:v_0-50 , my:v_0-51 , my:v_0-52 ,
 	                my:v_1-00_00 , my:v_1-00_01 , my:v_1-00_02 , my:v_1-00_03 , my:v_1-00_04 ,
-	                my:v_1-000 , my:v_1-001_01 .
+	                my:v_1-000 , my:v_1-001_01 , my:v_1-001_02 .
 
 #############################################################
 

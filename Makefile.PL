@@ -17,14 +17,14 @@ license             'perl';
 requires            'CGI'                => 0;
 requires            'CGI::Session'       => 0;
 requires            'common::sense'      => 0;
-requires            'Crypt::OpenSSL::X509' => 0;
-requires            'Crypt::X509'        => 0;
+requires            'Crypt::X509'        => '0.50';
 requires            'DateTime'           => 0;
-requires            'DateTime::Format::Strptime' => 0;
 requires            'LWP::UserAgent'     => 0;
 requires            'Math::BigInt'       => 0;
 requires            'MIME::Base64'       => 0;
+test_requires       'Module::Pluggable'  => '0.66';
 requires            'RDF::TrineShortcuts'=> '0.100';
+requires            'Scalar::Util'       => 0;
 test_requires       'Test::More'         => '0.61';
 recommends          'WWW::Finger'        => '0.100';
 
@@ -34,7 +34,7 @@ resources(
 	'bugtracker' => "http://rt.cpan.org/Dist/Display.html?Queue=$dist",
 	);
 
-keywords 'WebID', 'FOAF', 'SSL', 'FOAF+SSL', 'Authentication', 'Security', 'HTTPS';
+keywords 'WebID', 'FOAF', 'SSL', 'FOAF+SSL', 'Authentication', 'Security', 'HTTPS', 'Web ID', 'TLS', 'x509', 'X.509';
 
 write_doap_changes;
 write_doap_changes_xml;

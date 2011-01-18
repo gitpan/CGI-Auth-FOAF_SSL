@@ -1,195 +1,214 @@
 <?xml version="1.0" encoding="utf-8"?>
 <rdf:RDF xmlns:dbug="http://ontologi.es/doap-bugs#" xmlns:dc="http://purl.org/dc/terms/" xmlns:dcs="http://ontologi.es/doap-changeset#" xmlns:doap="http://usefulinc.com/ns/doap#" xmlns:foaf="http://xmlns.com/foaf/0.1/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#">
-<rdf:Description rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r0">
+<rdf:Description rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r0">
 	<dcs:versus rdf:resource="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_0-01"/>
-	<dc:item rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r1"/>
-	<dc:item rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r2"/>
+	<dc:item rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r1"/>
+	<dc:item rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r2"/>
 </rdf:Description>
-<rdf:Description rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r1">
+<rdf:Description rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r1">
 	<rdfs:label xml:lang="en">Changed API.</rdfs:label>
 </rdf:Description>
-<rdf:Description rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r10">
+<rdf:Description rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r10">
 	<rdfs:label xml:lang="en">No longer require certs to include Netscape extensions.</rdfs:label>
 </rdf:Description>
-<rdf:Description rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r11">
+<rdf:Description rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r11">
 	<rdf:type rdf:resource="http://ontologi.es/doap-changeset#Addition"/>
 	<rdfs:label xml:lang="en">Support for consuming RDFa.</rdfs:label>
 </rdf:Description>
-<rdf:Description rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r12">
+<rdf:Description rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r12">
 	<dcs:versus rdf:resource="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_0-05"/>
-	<dc:item rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r13"/>
-	<dc:item rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r14"/>
-	<dc:item rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r15"/>
-	<dc:item rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r16"/>
-	<dc:item rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r17"/>
+	<dc:item rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r13"/>
+	<dc:item rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r14"/>
+	<dc:item rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r15"/>
+	<dc:item rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r16"/>
+	<dc:item rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r17"/>
 </rdf:Description>
-<rdf:Description rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r13">
+<rdf:Description rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r13">
 	<rdfs:label xml:lang="en">Switch from RDF::Redland to RDF::Trine.</rdfs:label>
 </rdf:Description>
-<rdf:Description rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r14">
+<rdf:Description rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r14">
 	<rdf:type rdf:resource="http://ontologi.es/doap-changeset#Addition"/>
 	<rdfs:label xml:lang="en">Support Fingerpoint as fallback for URIless certificates.</rdfs:label>
 </rdf:Description>
-<rdf:Description rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r15">
+<rdf:Description rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r15">
 	<rdf:type rdf:resource="http://ontologi.es/doap-changeset#Addition"/>
 	<rdfs:label xml:lang="en">Support multiple URIs in subjectAltName.</rdfs:label>
 </rdf:Description>
-<rdf:Description rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r16">
+<rdf:Description rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r16">
 	<rdf:type rdf:resource="http://ontologi.es/doap-changeset#Addition"/>
 	<rdfs:label xml:lang="en">Session caching with cookies for speedup.</rdfs:label>
 </rdf:Description>
-<rdf:Description rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r17">
+<rdf:Description rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r17">
 	<rdf:type rdf:resource="http://ontologi.es/doap-changeset#Update"/>
 	<rdfs:label xml:lang="en">New build system using Module::Install.</rdfs:label>
 </rdf:Description>
-<rdf:Description rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r18">
+<rdf:Description rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r18">
 	<dcs:versus rdf:resource="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_0-50"/>
-	<dc:item rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r19"/>
-	<dc:item rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r20"/>
+	<dc:item rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r19"/>
+	<dc:item rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r20"/>
 </rdf:Description>
-<rdf:Description rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r19">
+<rdf:Description rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r19">
 	<rdfs:label xml:lang="en">Use WWW::Finger instead of its subclass WWW::Finger::Fingerpoint.</rdfs:label>
 </rdf:Description>
-<rdf:Description rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r2">
+<rdf:Description rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r2">
 	<rdf:type rdf:resource="http://ontologi.es/doap-changeset#Addition"/>
 	<rdfs:label xml:lang="en">Allow subjectAltName to point to a foaf:OnlineAccount.</rdfs:label>
 </rdf:Description>
-<rdf:Description rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r20">
+<rdf:Description rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r20">
 	<rdfs:label xml:lang="en">Fix package signature.</rdfs:label>
 </rdf:Description>
-<rdf:Description rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r21">
+<rdf:Description rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r21">
 	<dcs:versus rdf:resource="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_0-51"/>
-	<dc:item rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r22"/>
-	<dc:item rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r23"/>
+	<dc:item rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r22"/>
+	<dc:item rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r23"/>
 </rdf:Description>
-<rdf:Description rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r22">
+<rdf:Description rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r22">
 	<rdf:type rdf:resource="http://ontologi.es/doap-changeset#Update"/>
 	<rdfs:label xml:lang="en">Support new foaf:account property.</rdfs:label>
 </rdf:Description>
-<rdf:Description rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r23">
+<rdf:Description rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r23">
 	<rdf:type rdf:resource="http://ontologi.es/doap-changeset#Bugfix"/>
 	<rdfs:label xml:lang="en">Correct for mismatched hex string lengths by adding leading zeros to shorter string.</rdfs:label>
 </rdf:Description>
-<rdf:Description rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r24">
+<rdf:Description rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r24">
 	<dcs:versus rdf:resource="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_0-52"/>
-	<dc:item rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r25"/>
-	<dc:item rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r26"/>
-	<dc:item rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r27"/>
-	<dc:item rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r28"/>
-	<dc:item rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r29"/>
+	<dc:item rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r25"/>
+	<dc:item rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r26"/>
+	<dc:item rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r27"/>
+	<dc:item rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r28"/>
+	<dc:item rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r29"/>
 </rdf:Description>
-<rdf:Description rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r25">
+<rdf:Description rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r25">
 	<rdf:type rdf:resource="http://ontologi.es/doap-changeset#Update"/>
 	<rdfs:label xml:lang="en">use RDF::TrineShortcuts</rdfs:label>
 </rdf:Description>
-<rdf:Description rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r26">
+<rdf:Description rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r26">
 	<rdfs:label xml:lang="en">Much better documentation.</rdfs:label>
 </rdf:Description>
-<rdf:Description rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r27">
+<rdf:Description rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r27">
 	<rdf:type rdf:resource="http://ontologi.es/doap-changeset#Update"/>
 	<rdfs:label xml:lang="en">Use my swanky DOAP-powered build system.</rdfs:label>
 </rdf:Description>
-<rdf:Description rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r28">
+<rdf:Description rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r28">
 	<rdf:type rdf:resource="http://ontologi.es/doap-changeset#Addition"/>
 	<rdfs:label>service_homepage method for CGI::Auth::FOAF_SSL::OnlineAccount objects.</rdfs:label>
 </rdf:Description>
-<rdf:Description rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r29">
+<rdf:Description rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r29">
 	<rdfs:label xml:lang="en">Allow new_from_cgi to be called with no arguments.</rdfs:label>
 </rdf:Description>
-<rdf:Description rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r3">
+<rdf:Description rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r3">
 	<dcs:versus rdf:resource="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_0-02"/>
-	<dc:item rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r4"/>
-	<dc:item rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r5"/>
+	<dc:item rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r4"/>
+	<dc:item rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r5"/>
 </rdf:Description>
-<rdf:Description rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r30">
-	<dcs:item rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r31"/>
+<rdf:Description rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r30">
+	<dcs:item rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r31"/>
 	<dcs:versus rdf:resource="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_1-00_00"/>
 </rdf:Description>
-<rdf:Description rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r31">
+<rdf:Description rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r31">
 	<rdfs:label xml:lang="en">Documentation improvements</rdfs:label>
 </rdf:Description>
-<rdf:Description rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r32">
-	<dcs:item rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r33"/>
+<rdf:Description rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r32">
+	<dcs:item rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r33"/>
 	<dcs:versus rdf:resource="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_1-00_01"/>
 </rdf:Description>
-<rdf:Description rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r33">
+<rdf:Description rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r33">
 	<rdf:type rdf:resource="http://ontologi.es/doap-changeset#Update"/>
 	<rdfs:label xml:lang="en">The rsa and cert vocabularies have been changed recently.</rdfs:label>
 </rdf:Description>
-<rdf:Description rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r34">
-	<dcs:item rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r35"/>
-	<dcs:item rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r36"/>
-	<dcs:item rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r37"/>
+<rdf:Description rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r34">
+	<dcs:item rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r35"/>
+	<dcs:item rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r36"/>
+	<dcs:item rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r37"/>
 	<dcs:versus rdf:resource="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_1-00_02"/>
 </rdf:Description>
-<rdf:Description rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r35">
+<rdf:Description rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r35">
 	<rdfs:label xml:lang="en">Rename new_smiple to new_unauthenticated and document its usage.</rdfs:label>
 </rdf:Description>
-<rdf:Description rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r36">
+<rdf:Description rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r36">
 	<rdfs:label xml:lang="en">Rename verify_certificate_by_XXX functions to authenticate_by_XXX, make them share common code, document their usage.</rdfs:label>
 </rdf:Description>
-<rdf:Description rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r37">
+<rdf:Description rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r37">
 	<rdfs:label xml:lang="en">Use Math::BigInt instead of string comparison for comparing big hexadecimal numbers.</rdfs:label>
 </rdf:Description>
-<rdf:Description rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r38">
-	<dcs:item rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r39"/>
-	<dcs:item rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r40"/>
+<rdf:Description rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r38">
+	<dcs:item rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r39"/>
+	<dcs:item rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r40"/>
 	<dcs:versus rdf:resource="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_1-00_03"/>
 </rdf:Description>
-<rdf:Description rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r39">
+<rdf:Description rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r39">
 	<rdf:type rdf:resource="http://ontologi.es/doap-changeset#Removal"/>
 	<rdfs:label xml:lang="en">No longer supports subjectAltName pointing at a foaf:OnlineAccount. subjectAltName is always assumed to point to a foaf:Agent.</rdfs:label>
 </rdf:Description>
-<rdf:Description rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r4">
+<rdf:Description rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r4">
 	<rdf:type rdf:resource="http://ontologi.es/doap-changeset#Bugfix"/>
 	<rdfs:label xml:lang="en">Fixed some bugs with new_from_cgi.</rdfs:label>
 </rdf:Description>
-<rdf:Description rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r40">
+<rdf:Description rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r40">
 	<rdfs:label xml:lang="en">Constructor returns an object where "->is_secure" is false rather than undef in the case of a certificate with no useful subjectAltName.</rdfs:label>
 </rdf:Description>
-<rdf:Description rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r41">
-	<dcs:item rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r42"/>
-	<dcs:item rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r43"/>
-	<dcs:item rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r44"/>
-	<dcs:item rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r45"/>
+<rdf:Description rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r41">
+	<dcs:item rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r42"/>
+	<dcs:item rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r43"/>
+	<dcs:item rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r44"/>
+	<dcs:item rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r45"/>
 	<dcs:versus rdf:resource="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_1-000"/>
 </rdf:Description>
-<rdf:Description rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r42">
+<rdf:Description rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r42">
 	<rdfs:label xml:lang="en">Use Crypt::X509, Crypt::OpenSSL::X509, DateTime and DateTime::Format::Strptime to parse PEM-encoded certificates rather than relying on the OpenSSL command-line client.</rdfs:label>
 </rdf:Description>
-<rdf:Description rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r43">
+<rdf:Description rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r43">
 	<rdfs:label xml:lang="en">Remove dependencies on IPC::Open2, Encode and Carp.</rdfs:label>
 </rdf:Description>
-<rdf:Description rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r44">
+<rdf:Description rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r44">
 	<rdfs:label xml:lang="en">use common::sense.</rdfs:label>
 </rdf:Description>
-<rdf:Description rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r45">
+<rdf:Description rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r45">
 	<rdfs:label xml:lang="en">Make WWW::Finger optional.</rdfs:label>
 </rdf:Description>
-<rdf:Description rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r46">
+<rdf:Description rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r46">
+	<dcs:item rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r47"/>
+	<dcs:item rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r48"/>
+	<dcs:item rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r49"/>
+	<dcs:item rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r50"/>
+	<dcs:versus rdf:resource="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_1-001_01"/>
+</rdf:Description>
+<rdf:Description rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r47">
+	<rdfs:label xml:lang="en">No longer use Crypt::OpenSSL::X509 and DateTime::Format::Strptime.</rdfs:label>
+</rdf:Description>
+<rdf:Description rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r48">
+	<rdfs:label xml:lang="en">use Crypt::X509 '0.50'.</rdfs:label>
+</rdf:Description>
+<rdf:Description rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r49">
+	<rdfs:label xml:lang="en">Clean up code; add accessors to peek at much of the module's internal data.</rdfs:label>
+</rdf:Description>
+<rdf:Description rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r5">
+	<rdfs:label xml:lang="en">Documentation improvements.</rdfs:label>
+</rdf:Description>
+<rdf:Description rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r50">
+	<rdfs:label xml:lang="en">Move some obscure documentation to a separate file.</rdfs:label>
+</rdf:Description>
+<rdf:Description rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r51">
 	<doap:browse rdf:resource="http://goddamn.co.uk/viewvc/perlmods/CGI-Auth-FOAF_SSL/"/>
 	<rdf:type rdf:resource="http://usefulinc.com/ns/doap#SVNRepository"/>
 </rdf:Description>
-<rdf:Description rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r5">
-	<rdfs:label xml:lang="en">Documentation improvements.</rdfs:label>
-</rdf:Description>
-<rdf:Description rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r6">
+<rdf:Description rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r6">
 	<dcs:versus rdf:resource="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_0-03"/>
-	<dc:item rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r7"/>
-	<dc:item rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r8"/>
+	<dc:item rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r7"/>
+	<dc:item rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r8"/>
 </rdf:Description>
-<rdf:Description rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r7">
+<rdf:Description rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r7">
 	<rdf:type rdf:resource="http://ontologi.es/doap-changeset#Bugfix"/>
 	<rdfs:label xml:lang="en">foaf:Agent-related fix.</rdfs:label>
 </rdf:Description>
-<rdf:Description rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r8">
+<rdf:Description rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r8">
 	<rdf:type rdf:resource="http://ontologi.es/doap-changeset#Bugfix"/>
 	<rdfs:label xml:lang="en">foaf:OnlineAccount-related security fix.</rdfs:label>
 </rdf:Description>
-<rdf:Description rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r9">
+<rdf:Description rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r9">
 	<dcs:versus rdf:resource="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_0-05"/>
-	<dc:item rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r10"/>
-	<dc:item rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r11"/>
+	<dc:item rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r10"/>
+	<dc:item rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r11"/>
 </rdf:Description>
 <rdf:Description rdf:about="file:///home/tai/src/perlmods/CGI-Auth-FOAF_SSL/Changes.ttl">
 	<dc:creator rdf:resource="http://tobyinkster.co.uk/#i"/>
@@ -218,12 +237,13 @@
 	<doap:release rdf:resource="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_0-52"/>
 	<doap:release rdf:resource="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_1-000"/>
 	<doap:release rdf:resource="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_1-001_01"/>
+	<doap:release rdf:resource="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_1-001_02"/>
 	<doap:release rdf:resource="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_1-00_00"/>
 	<doap:release rdf:resource="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_1-00_01"/>
 	<doap:release rdf:resource="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_1-00_02"/>
 	<doap:release rdf:resource="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_1-00_03"/>
 	<doap:release rdf:resource="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_1-00_04"/>
-	<doap:repository rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r46"/>
+	<doap:repository rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r51"/>
 	<doap:shortdesc xml:lang="en">authentication using FOAF+SSL (WebID)</doap:shortdesc>
 	<doap:tester rdf:resource="http://tobyinkster.co.uk/#i"/>
 	<rdf:type rdf:resource="http://usefulinc.com/ns/doap#Project"/>
@@ -236,35 +256,35 @@
 	<rdfs:label xml:lang="en">First release</rdfs:label>
 </rdf:Description>
 <rdf:Description rdf:about="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_0-02">
-	<dcs:changeset rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r0"/>
+	<dcs:changeset rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r0"/>
 	<dc:issued rdf:datatype="http://www.w3.org/2001/XMLSchema#date">2009-02-19</dc:issued>
 	<doap:file-release rdf:resource="http://backpan.cpan.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.02.tar.gz"/>
 	<doap:revision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">0.02</doap:revision>
 	<rdf:type rdf:resource="http://usefulinc.com/ns/doap#Version"/>
 </rdf:Description>
 <rdf:Description rdf:about="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_0-03">
-	<dcs:changeset rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r3"/>
+	<dcs:changeset rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r3"/>
 	<dc:issued rdf:datatype="http://www.w3.org/2001/XMLSchema#date">2009-03-01</dc:issued>
 	<doap:file-release rdf:resource="http://backpan.cpan.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.03.tar.gz"/>
 	<doap:revision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">0.03</doap:revision>
 	<rdf:type rdf:resource="http://usefulinc.com/ns/doap#Version"/>
 </rdf:Description>
 <rdf:Description rdf:about="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_0-04">
-	<dcs:changeset rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r6"/>
+	<dcs:changeset rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r6"/>
 	<dc:issued rdf:datatype="http://www.w3.org/2001/XMLSchema#date">2009-03-01</dc:issued>
 	<doap:file-release rdf:resource="http://backpan.cpan.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.04.tar.gz"/>
 	<doap:revision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">0.04</doap:revision>
 	<rdf:type rdf:resource="http://usefulinc.com/ns/doap#Version"/>
 </rdf:Description>
 <rdf:Description rdf:about="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_0-05">
-	<dcs:changeset rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r9"/>
+	<dcs:changeset rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r9"/>
 	<dc:issued rdf:datatype="http://www.w3.org/2001/XMLSchema#date">2009-03-26</dc:issued>
 	<doap:file-release rdf:resource="http://backpan.cpan.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.05.tar.gz"/>
 	<doap:revision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">0.05</doap:revision>
 	<rdf:type rdf:resource="http://usefulinc.com/ns/doap#Version"/>
 </rdf:Description>
 <rdf:Description rdf:about="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_0-50">
-	<dcs:changeset rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r12"/>
+	<dcs:changeset rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r12"/>
 	<dc:issued rdf:datatype="http://www.w3.org/2001/XMLSchema#date">2009-12-14</dc:issued>
 	<doap:file-release rdf:resource="http://backpan.cpan.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.50.tar.gz"/>
 	<doap:revision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">0.50</doap:revision>
@@ -272,56 +292,63 @@
 	<rdfs:label xml:lang="en">Trine Edition</rdfs:label>
 </rdf:Description>
 <rdf:Description rdf:about="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_0-51">
-	<dcs:changeset rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r18"/>
+	<dcs:changeset rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r18"/>
 	<dc:issued rdf:datatype="http://www.w3.org/2001/XMLSchema#date">2009-12-15</dc:issued>
 	<doap:file-release rdf:resource="http://backpan.cpan.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.51.tar.gz"/>
 	<doap:revision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">0.51</doap:revision>
 	<rdf:type rdf:resource="http://usefulinc.com/ns/doap#Version"/>
 </rdf:Description>
 <rdf:Description rdf:about="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_0-52">
-	<dcs:changeset rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r21"/>
+	<dcs:changeset rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r21"/>
 	<dc:issued rdf:datatype="http://www.w3.org/2001/XMLSchema#date">2009-12-16</dc:issued>
 	<doap:file-release rdf:resource="http://backpan.cpan.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-0.52.tar.gz"/>
 	<doap:revision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">0.52</doap:revision>
 	<rdf:type rdf:resource="http://usefulinc.com/ns/doap#Version"/>
 </rdf:Description>
 <rdf:Description rdf:about="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_1-000">
-	<dcs:changeset rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r38"/>
+	<dcs:changeset rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r38"/>
 	<dc:issued rdf:datatype="http://www.w3.org/2001/XMLSchema#date">2010-07-25</dc:issued>
 	<doap:file-release rdf:resource="http://backpan.cpan.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-1.000.tar.gz"/>
 	<doap:revision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">1.000</doap:revision>
 	<rdf:type rdf:resource="http://usefulinc.com/ns/doap#Version"/>
 </rdf:Description>
 <rdf:Description rdf:about="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_1-001_01">
-	<dcs:changeset rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r41"/>
+	<dcs:changeset rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r41"/>
 	<dc:issued rdf:datatype="http://www.w3.org/2001/XMLSchema#date">2010-09-19</dc:issued>
 	<doap:file-release rdf:resource="http://backpan.cpan.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-1.001_01.tar.gz"/>
 	<doap:revision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">1.001_01</doap:revision>
 	<rdf:type rdf:resource="http://usefulinc.com/ns/doap#Version"/>
 </rdf:Description>
+<rdf:Description rdf:about="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_1-001_02">
+	<dcs:changeset rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r46"/>
+	<dc:issued rdf:datatype="http://www.w3.org/2001/XMLSchema#date">2011-01-18</dc:issued>
+	<doap:file-release rdf:resource="http://backpan.cpan.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-1.001_02.tar.gz"/>
+	<doap:revision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">1.001_02</doap:revision>
+	<rdf:type rdf:resource="http://usefulinc.com/ns/doap#Version"/>
+</rdf:Description>
 <rdf:Description rdf:about="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_1-00_00">
-	<dcs:changeset rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r24"/>
+	<dcs:changeset rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r24"/>
 	<dc:issued rdf:datatype="http://www.w3.org/2001/XMLSchema#date">2010-02-05</dc:issued>
 	<doap:file-release rdf:resource="http://backpan.cpan.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-1.00_00.tar.gz"/>
 	<doap:revision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">1.00_00</doap:revision>
 	<rdf:type rdf:resource="http://usefulinc.com/ns/doap#Version"/>
 </rdf:Description>
 <rdf:Description rdf:about="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_1-00_01">
-	<dcs:changeset rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r30"/>
+	<dcs:changeset rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r30"/>
 	<dc:issued rdf:datatype="http://www.w3.org/2001/XMLSchema#date">2010-02-10</dc:issued>
 	<doap:file-release rdf:resource="http://backpan.cpan.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-1.00_01.tar.gz"/>
 	<doap:revision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">1.00_01</doap:revision>
 	<rdf:type rdf:resource="http://usefulinc.com/ns/doap#Version"/>
 </rdf:Description>
 <rdf:Description rdf:about="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_1-00_02">
-	<dcs:changeset rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r32"/>
+	<dcs:changeset rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r32"/>
 	<dc:issued rdf:datatype="http://www.w3.org/2001/XMLSchema#date">2010-03-21</dc:issued>
 	<doap:file-release rdf:resource="http://backpan.cpan.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-1.00_02.tar.gz"/>
 	<doap:revision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">1.00_02</doap:revision>
 	<rdf:type rdf:resource="http://usefulinc.com/ns/doap#Version"/>
 </rdf:Description>
 <rdf:Description rdf:about="http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/#v_1-00_03">
-	<dcs:changeset rdf:nodeID="r3BC7BCBAC3B811DF82B0946BC434A083r34"/>
+	<dcs:changeset rdf:nodeID="r3CE73128229C11E08C708CD24E861FF1r34"/>
 	<dc:issued rdf:datatype="http://www.w3.org/2001/XMLSchema#date">2010-03-26</dc:issued>
 	<doap:file-release rdf:resource="http://backpan.cpan.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-1.00_03.tar.gz"/>
 	<doap:revision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">1.00_03</doap:revision>

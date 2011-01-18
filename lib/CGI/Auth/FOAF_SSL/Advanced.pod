@@ -1,0 +1,147 @@
+=head1 NAME
+
+CGI::Auth::FOAF_SSL::Advanced - advanced methods
+
+=head1 DESCRIPTION
+
+The following methods are provided by CGI::Auth::FOAF_SSL but are unlikely
+to be useful for end-users. They are documented here for people wishing to
+develop extensions to CGI::Auth::FOAF_SSL.
+
+=head2 Constructor
+
+=over 4
+
+=item * C<< new_unauthenticated($pem_encoded) >>
+
+Creates a CGI::Auth::FOAF_SSL object without performing WebID authentication.
+
+=back
+
+=head2 Accessors
+
+The following can be used to get/set values associated with the session, certificate or
+certificate subject (client).
+
+=over 4
+
+=item * C<< validation >>
+
+Returns a constant indicating how far along the validation sequence this session is.
+
+C<CGI::Auth::FOAF_SSL::VALIDATION_PEM> indicates that the PEM certificate
+has been parsed and seemed syntactically valid. C<CGI::Auth::FOAF_SSL::VALIDATION_DATES>
+indicates that the notBefore and notAfter dates on the certificate have been checked
+and found to be OK. C<CGI::Auth::FOAF_SSL::VALIDATION_WEBID> indicates that
+full WebID authenticaion has been successful.
+
+=item * C<< cert_modulus >>
+
+The certificate's RSA key modulus, as a L<Math::BigInt>.
+
+=item * C<< cert_exponent >>
+
+The certificate's RSA key public exponent, as a L<Math::BigInt>.
+
+=item * C<< cert_not_before >>
+
+A date the certificate should not be used before, as a L<DateTime>.
+
+=item * C<< cert_not_after >>
+
+A date the certificate should not be used after, as a L<DateTime>.
+
+=item * C<< subject_uri >>
+
+The WebID URI for the subject of the certificate, after authentication is successful.
+
+=item * C<< subject_model >>
+
+An L<RDF::Trine::Model> for the WebID profile document for the subject of the
+certificate, after authentication is successful.
+
+=item * C<< subject_endpoint >>
+
+A SPARQL Protocol endpoint for the subject of the certificate, after authentication
+is successful.
+
+=item * C<< session >>
+
+A L<CGI::Session> object for this session.
+
+=back
+
+=head2 Methods
+
+=over 4
+
+=item * C<< authenticate_by_uri($uri) >>
+
+Checks if $uri claims that $auth's key identifies it.
+
+Returns true if authentication sucessful and positive.
+
+=item * C<< authenticate_by_email($email_address) >>
+
+Checks if $email_address claims that $auth's key identifies it
+(via WebFinger/Fingerpoint).
+
+Returns true if authentication sucessful and positive.
+
+=item * C<< authenticate_by_sparql($uri, $endpoint) >>
+
+Checks if $endpoint claims that $auth's key identifies $uri. $endpoint may be
+a SPARQL endpoint URI or an RDF::Trine::Model.
+
+Returns true if authentication sucessful and positive.
+
+=back
+
+=head2 Utility Methods
+
+=over 4
+
+=item * C<< get_trine_model($uri) >>
+
+Get an RDF::Trine::Model corresponding to a URI.
+
+=item * C<< make_bigint_from_node($node) >>
+
+Turns an RDF::Trine::Node::Literal object into a Math::BigInt
+representing the same number.
+
+There are optional named parameters for providing a fallback
+in the case where $trine_node has an unrecognised datatype or
+is not a literal.
+
+ $bi = $auth->make_bigint_from_node(
+    $trine_node, fallback=>$other_node, fallback_type=>'hex');
+
+The authenticate_by_XXX methods use this.
+
+=item * C<< execute_query($sparql) >>
+
+Returns the results of a SPARQL query. Uses the certificate subject's
+RDF file as a data source, or the certificate subject's SPARQL endpoint.
+
+See L<RDF::TrineShortcuts> function rdf_query for an explanation of the
+return format.
+
+=back
+
+=head1 SEE ALSO
+
+L<CGI::Auth::FOAF_SSL>.
+
+=head1 AUTHOR
+
+Toby Inkster, E<lt>tobyink@cpan.orgE<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2009-2011 by Toby Inkster
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut

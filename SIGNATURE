@@ -14,36 +14,37 @@ not run its Makefile.PL or Build.PL.
 -----BEGIN PGP SIGNED MESSAGE-----
 Hash: SHA1
 
-SHA1 131e41ab58840c4fdc5435124760e0c114172e98 Changes
-SHA1 7c75d30c02a34b754dc14c4bfbaef8a07eb30edd Changes.ttl
-SHA1 4734c75d28b0708f09448f67aa9ef581be926140 Changes.xml
-SHA1 65006298296c62d5e2fb01215f2b6055964e2b8e MANIFEST
+SHA1 f7f1015969e91cc98321e6909bc822529cebc989 Changes
+SHA1 cd25a90549fd3732d08fb7fe33dd84307d6ea4e8 Changes.ttl
+SHA1 60c52949ba869e3942332e79c38a666c343fe408 Changes.xml
+SHA1 788797ac6dbbaa0ef54e5f0ba89f6545bc4b0a58 MANIFEST
 SHA1 8067e8144a6d980aa4e195925ac3592d11438aaa MANIFEST.SKIP
-SHA1 dd6435a1b939a0d70e587d0e91f12a951e35b132 META.yml
-SHA1 3ce64b0f1a616d609c16459f1c7131de0f77ee2d Makefile.PL
-SHA1 1818c4ef9f33ff568b29ff96b32d359057dec1e0 README
-SHA1 8842ca38ce27ccf75e1ce8f5dfb93fa62d933b2e inc/Module/AutoInstall.pm
-SHA1 1ebec4119486a032a5612a403e8d7b7be973e938 inc/Module/Install.pm
-SHA1 bec3c7f9af6e1a3cb4d143249956c98af30f0552 inc/Module/Install/AutoInstall.pm
-SHA1 24038af925a69df41972971356ccce885b0fe2ad inc/Module/Install/Base.pm
-SHA1 8f96eddfef548c9328457fbb17a121631cda356b inc/Module/Install/Can.pm
+SHA1 4a878458234a83a0461898ab7c6b2f964daaa200 META.yml
+SHA1 baf8356ed38b498facfbc584fa413695f75c9171 Makefile.PL
+SHA1 911b7291c095f2197c2d5a22a8e813a45e0e4f04 README
+SHA1 20c73697e1713638140c719d8eaa19a275ed43a5 inc/Module/AutoInstall.pm
+SHA1 7305dbe2904416e28decb05396988a5d51d578be inc/Module/Install.pm
+SHA1 ca13d9875e1249f6e84f7070be8152c34837955e inc/Module/Install/AutoInstall.pm
+SHA1 129960509127732258570c122042bc48615222e1 inc/Module/Install/Base.pm
+SHA1 cf3356ed9a5bd2f732527ef9e7bc5ef4458c8a93 inc/Module/Install/Can.pm
 SHA1 de189984fc99741cc060d1964f513e45bf6d5c74 inc/Module/Install/DOAPChangeSets.pm
-SHA1 ec29048e48edd9c9c55f9de7b773bd7c904335ad inc/Module/Install/Fetch.pm
-SHA1 01862227830d2547f38275eaee0eb9f5add5a252 inc/Module/Install/Include.pm
-SHA1 0384525d85d51e99532e3ad8729d870113646d14 inc/Module/Install/Makefile.pm
-SHA1 38c657de4d91f5a60ff8e6c6f6a5547daf7c4ab2 inc/Module/Install/Metadata.pm
+SHA1 bf0a3e1977effc2832d7a813a76dce3f31b437b6 inc/Module/Install/Fetch.pm
+SHA1 b501b0df59a5cd235cca473889f82c3d3429f39e inc/Module/Install/Include.pm
+SHA1 b721c93ca5bc9a6aa863b49af15f1b1de6125935 inc/Module/Install/Makefile.pm
+SHA1 026cc0551a0ad399d195e395b46bdf842e115192 inc/Module/Install/Metadata.pm
 SHA1 a615bb050ca0b2d79bfa0224addcb83019a53b09 inc/Module/Install/ReadmeFromPod.pm
-SHA1 5c25f1104c0038041e3b93e0660c39171e4caf2b inc/Module/Install/Win32.pm
-SHA1 94d47349c803c4bd2a9230d25e4db0b6aaf1acd8 inc/Module/Install/WriteAll.pm
+SHA1 5457015ea5a50e93465bf2dafa29feebd547f85b inc/Module/Install/Win32.pm
+SHA1 051e7fa8063908befa3440508d0584a2497b97db inc/Module/Install/WriteAll.pm
 SHA1 1e6399a0585817abef500c34fce676fb9b0545f0 inc/Test/Signature.pm
-SHA1 380aa93b8ca9a4848b0d0de6a6e24c2bd5f58ece lib/CGI/Auth/FOAF_SSL.pm
-SHA1 9e283a17cbb0102a6c682a896bde1897a090b470 lib/CGI/Auth/FOAF_SSL/Agent.pm
+SHA1 1280ae9b13db0045f68fd54741d00650a1558b02 lib/CGI/Auth/FOAF_SSL.pm
+SHA1 fbeab484d3498433e334f1cf07bdfd6b0747733e lib/CGI/Auth/FOAF_SSL/Advanced.pod
+SHA1 2981a26971663c11a108fef75fb961598a9d3518 lib/CGI/Auth/FOAF_SSL/Agent.pm
 SHA1 bb128dce2db8ad397dbeb957d79d084cc5d2391a t/00sig.t
 SHA1 a6c959f7a142ca1f4165dee5234b18597c76a360 t/01basic.t
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.10 (GNU/Linux)
 
-iEYEARECAAYFAkyVr38ACgkQzr+BKGoqfTlkgACfV1kWXxZVeQJ+C0aHmsvXoh8J
-RcsAn0wATupCYlpL44gu6X5iZ+t/VKC3
-=Wf3a
+iEYEARECAAYFAk004roACgkQzr+BKGoqfTmSPACfcqI0H3AfXEbxHoiD0oOOIGOb
+h4sAoKmSTvu65FwvbjIoaGVPPFwlvay2
+=Iq+o
 -----END PGP SIGNATURE-----
