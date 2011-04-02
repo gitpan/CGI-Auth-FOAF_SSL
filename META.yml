@@ -1,5 +1,5 @@
 ---
-abstract: 'authentication using FOAF+SSL (WebID)'
+abstract: 'authentication using WebID (FOAF+SSL)'
 author:
   - 'Toby Inkster <tobyink@cpan.org>'
 build_requires:
@@ -50,4 +50,4 @@ resources:
   homepage: http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/
   license: http://dev.perl.org/licenses/
   repository: http://goddamn.co.uk/viewvc/perlmods/CGI-Auth-FOAF_SSL/
-version: 1.001_02
+version: 1.001

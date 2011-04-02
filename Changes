@@ -10,6 +10,8 @@ Home page:    <http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/>
 Bug tracker:  <http://rt.cpan.org/Dist/Display.html?Queue=CGI-Auth-FOAF_SSL>
 Maintainer:   Toby Inkster <mailto:tobyink@cpan.org>
 
+1.001 [2011-04-02] # Stable release.
+
 1.001_02 [2011-01-18]
  - Clean up code; add accessors to peek at much of the module's internal
    data.
@@ -25,6 +27,13 @@ Maintainer:   Toby Inkster <mailto:tobyink@cpan.org>
    relying on the OpenSSL command-line client.
  - use common::sense.
 
+1.000 [2010-07-25]
+ - Constructor returns an object where "->is_secure" is false rather than
+   undef in the case of a certificate with no useful subjectAltName.
+ - (Removal) No longer supports subjectAltName pointing at a
+   foaf:OnlineAccount. subjectAltName is always assumed to point to a
+   foaf:Agent.
+
 1.00_03 [2010-03-26]
  - Rename new_smiple to new_unauthenticated and document its usage.
  - Rename verify_certificate_by_XXX functions to authenticate_by_XXX, make
@@ -39,13 +48,6 @@ Maintainer:   Toby Inkster <mailto:tobyink@cpan.org>
  - Documentation improvements
 
 1.00_00 [2010-02-05]
-
-1.000 [2010-07-25]
- - Constructor returns an object where "->is_secure" is false rather than
-   undef in the case of a certificate with no useful subjectAltName.
- - (Removal) No longer supports subjectAltName pointing at a
-   foaf:OnlineAccount. subjectAltName is always assumed to point to a
-   foaf:Agent.
 
 0.52 [2009-12-16]
 

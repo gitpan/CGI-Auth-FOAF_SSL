@@ -5,7 +5,7 @@ use common::sense;
 
 =head1 NAME
 
-CGI::Auth::FOAF_SSL - authentication using FOAF+SSL (WebID)
+CGI::Auth::FOAF_SSL - authentication using WebID (FOAF+SSL)
 
 =head1 SYNOPSIS
 
@@ -83,7 +83,7 @@ my ($AGENT, $MODEL, $SESSION); # inside-out objects
 
 BEGIN
 {
-	$VERSION = '1.001_02';
+	$VERSION = '1.001';
 	$ua_string = sprintf('%s/%s ', __PACKAGE__, $VERSION);	
 
 	$WWW_Finger = 0;

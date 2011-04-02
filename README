@@ -1,5 +1,5 @@
 NAME
-    CGI::Auth::FOAF_SSL - authentication using FOAF+SSL (WebID)
+    CGI::Auth::FOAF_SSL - authentication using WebID (FOAF+SSL)
 
 SYNOPSIS
       use CGI qw(:all);
