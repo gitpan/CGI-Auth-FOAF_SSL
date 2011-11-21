@@ -1,73 +1,20 @@
 package CGI::Auth::FOAF_SSL;
 
-use 5.008;
+use 5.010;
 use common::sense;
 
-=head1 NAME
-
-CGI::Auth::FOAF_SSL - authentication using WebID (FOAF+SSL)
-
-=head1 SYNOPSIS
-
-  use CGI qw(:all);
-  use CGI::Auth::FOAF_SSL;
-  
-  my $auth = CGI::Auth::FOAF_SSL->new_from_cgi;
-  
-  print header(-type=>'text/html', -cookie=>$auth->cookie);
-  
-  if (defined $auth && $auth->is_secure)
-  {
-    if (defined $auth->subject)
-    {
-      printf("<p>Hello <a href='%s'>%s</a>!</p>\n",
-             escapeHTML($auth->subject->homepage),
-             escapeHTML($auth->subject->name));
-    }
-    else
-    {
-      print "<p>Hello!</p>\n";
-    }
-  }
-  else
-  {
-    print "<p>Greetings stranger!</p>\n";
-  }
-
-=head1 VERSION
-
-1.001 (developer preview)
-
-=head1 DESCRIPTION
-
-FOAF+SSL (a.k.a. WebID) is a simple authentication scheme described
-at L<http://esw.w3.org/topic/foaf+ssl>. This module implements the server
-end of FOAF+SSL in Perl.
-
-It is suitable for handling authentication using FOAF+SSL over HTTPS.
-Your web server needs to be using HTTPS, configured to request client
-certificates, and make the certificate PEM available to your script. If you
-are using Apache, this means that you want to set the following
-directives in your SSL virtual host setup:
-
- SSLEngine on
- SSLVerifyClient optional_no_ca
- SSLVerifyDepth  1
- SSLOptions +StdEnvVars +ExportCertData
-
-=cut
-
-use CGI::Auth::FOAF_SSL::Agent;
-use CGI;
-use CGI::Session;
-use Crypt::X509 '0.50';
-use DateTime;
-use File::Spec;
-use LWP::UserAgent;
-use Math::BigInt try => 'GMP';
-use MIME::Base64 qw[];
-use RDF::TrineShortcuts '0.100';
-use Scalar::Util qw[blessed refaddr];
+use CGI::Auth::FOAF_SSL::Agent 0;
+use CGI 0;
+use CGI::Session 0;
+use Crypt::X509 0.50;
+use DateTime 0;
+use File::Spec 0;
+use LWP::UserAgent 0;
+use Math::BigInt 0 try => 'GMP';
+use MIME::Base64 0 qw[];
+use Object::ID 0;
+use RDF::TrineShortcuts 0.100;
+use Scalar::Util 0 qw[blessed];
 
 use constant {
 	VALIDATION_PEM     => 1,
@@ -83,10 +30,11 @@ my ($AGENT, $MODEL, $SESSION); # inside-out objects
 
 BEGIN
 {
-	$VERSION = '1.001';
+	$VERSION = '1.002';
 	$ua_string = sprintf('%s/%s ', __PACKAGE__, $VERSION);	
 
 	$WWW_Finger = 0;
+	if (0) # DISABLED
 	{
 		local $@ = undef;
 		eval
@@ -102,32 +50,6 @@ BEGIN
 	$MODEL   = {};
 	$SESSION = {};
 }
-
-=head2 Configuration
-
-=over 4
-
-=item * C<< $CGI::Auth::FOAF_SSL::ua_string = 'MyTool/1.0' >>
-
-Set the User-Agent string for any HTTP requests.
-
-=back
-
-=head2 Constructors
-
-=over 4
-
-=item * C<< new($pem_encoded) >>
-
-Performs FOAF+SSL authentication on a PEM-encoded key. If authentication is
-completely unsuccessful, returns undef. Otherwise, returns a CGI::Auth::FOAF_SSL
-object. Use C<is_secure> to check if authentication was I<completely> successful.
-
-You probably want to use C<new_from_cgi> instead.
-
-(DER encoded certificates should work too.)
-
-=cut
 
 sub new
 {
@@ -165,16 +87,6 @@ sub new
 	
 	return $self;
 }
-
-=item * C<< new_from_cgi($cgi_object) >>
-
-Performs FOAF+SSL authentication on a CGI object. This is a wrapper around
-C<new> which extracts the PEM-encoded client certificate from the CGI
-request. It has the same return values as C<new>.
-
-If $cgi_object is omitted, uses C<< CGI->new >> instead.
-
-=cut
 
 sub new_from_cgi
 {
@@ -228,17 +140,6 @@ sub new_unauthenticated
 	return $self;
 }
 
-=back
-
-=head2 Public Methods
-
-=over 4
-
-=item * C<< is_secure >>
-
-Returns true iff the FOAF+SSL authentication process was completely successful.
-
-=cut
 
 sub is_secure
 {
@@ -246,41 +147,22 @@ sub is_secure
 	return ($self->validation == VALIDATION_WEBID) ? 1 : 0;
 }
 
-=item * C<< subject >>
-
-Returns a L<CGI::Auth::FOAF_SSL::Agent> object which represents the subject
-of the certificate. 
-
-This method has aliases C<agent> and C<certified_thing> for back-compat
-reasons.
-
-=cut
-
 sub subject
 {
 	my ($self) = @_;
 
-	$AGENT->{ refaddr($self) } ||= CGI::Auth::FOAF_SSL::Agent->new(
+	$AGENT->{ object_id($self) } ||= CGI::Auth::FOAF_SSL::Agent->new(
 		$self->subject_uri,
 		$self->subject_model,
 		$self->subject_endpoint,
 		);
 
-	return $AGENT->{ refaddr($self) };
+	return $AGENT->{ object_id($self) };
 }
 
 *certified_thing = \&subject;
 *agent           = \&subject;
 *account         = sub { return; };
-
-=item * C<< cookie >>
-
-HTTP cookie related to the authentication process. Sending this to the
-client isn't strictly necessary, but it allows for a session to be
-established, greatly speeding up subsequent accesses. See also the
-COOKIES section of this documentation.
-
-=cut
 
 sub cookie
 {
@@ -326,10 +208,19 @@ SELECT
 	?hexModulus
 WHERE
 {
-	?key
-		cert:identity <%s> ;
-		rsa:modulus ?modulus ;
-		rsa:public_exponent ?exponent .
+	{
+		?key
+			cert:identity <%s> ;
+			rsa:modulus ?modulus ;
+			rsa:public_exponent ?exponent .
+	}
+	UNION
+	{
+		<%s> cert:key ?key .
+		?key
+			rsa:modulus ?modulus ;
+			rsa:public_exponent ?exponent .
+	}
 
 	OPTIONAL { ?modulus cert:hex ?hexModulus . }
 	OPTIONAL { ?exponent cert:decimal ?decExponent . }
@@ -459,9 +350,9 @@ sub subject_model
 	my ($self) = shift;
 	if (@_)
 	{
-		$MODEL->{ refaddr($self) } = shift;
+		$MODEL->{ object_id($self) } = shift;
 	}
-	return $MODEL->{ refaddr($self) };
+	return $MODEL->{ object_id($self) };
 }
 
 # Documentation in Advanced.pod
@@ -482,17 +373,17 @@ sub session
 	
 	if (@_)
 	{
-		$SESSION->{ refaddr($self) } = shift;
+		$SESSION->{ object_id($self) } = shift;
 	}
 
-	unless (defined $SESSION->{ refaddr($self) })
+	unless (defined $SESSION->{ object_id($self) })
 	{
 		my $s = CGI::Session->new('driver:file', undef, {Directory => File::Spec->tmpdir});
 		$s->expire('+1h');
-		$SESSION->{ refaddr($self) } = $s;
+		$SESSION->{ object_id($self) } = $s;
 	}
 	
-	return $SESSION->{ refaddr($self) };
+	return $SESSION->{ object_id($self) };
 }
 
 # Documentation in Advanced.pod
@@ -597,6 +488,111 @@ sub execute_query
 1;
 
 __END__
+
+=head1 NAME
+
+CGI::Auth::FOAF_SSL - authentication using WebID (FOAF+SSL)
+
+=head1 SYNOPSIS
+
+  use CGI qw(:all);
+  use CGI::Auth::FOAF_SSL;
+  
+  my $auth = CGI::Auth::FOAF_SSL->new_from_cgi;
+  
+  print header(-type=>'text/html', -cookie=>$auth->cookie);
+  
+  if (defined $auth && $auth->is_secure)
+  {
+    if (defined $auth->subject)
+    {
+      printf("<p>Hello <a href='%s'>%s</a>!</p>\n",
+             escapeHTML($auth->subject->homepage),
+             escapeHTML($auth->subject->name));
+    }
+    else
+    {
+      print "<p>Hello!</p>\n";
+    }
+  }
+  else
+  {
+    print "<p>Greetings stranger!</p>\n";
+  }
+
+=head1 DESCRIPTION
+
+FOAF+SSL (a.k.a. WebID) is a simple authentication scheme described
+at L<http://esw.w3.org/topic/foaf+ssl>. This module implements the server
+end of FOAF+SSL in Perl.
+
+It is suitable for handling authentication using FOAF+SSL over HTTPS.
+Your web server needs to be using HTTPS, configured to request client
+certificates, and make the certificate PEM available to your script. If you
+are using Apache, this means that you want to set the following
+directives in your SSL virtual host setup:
+
+ SSLEngine on
+ SSLVerifyClient optional_no_ca
+ SSLVerifyDepth  1
+ SSLOptions +StdEnvVars +ExportCertData
+
+=head2 Configuration
+
+=over 4
+
+=item * C<< $CGI::Auth::FOAF_SSL::ua_string = 'MyTool/1.0' >>
+
+Set the User-Agent string for any HTTP requests.
+
+=back
+
+=head2 Constructors
+
+=over 4
+
+=item * C<< new($pem_encoded) >>
+
+Performs FOAF+SSL authentication on a PEM-encoded key. If authentication is
+completely unsuccessful, returns undef. Otherwise, returns a CGI::Auth::FOAF_SSL
+object. Use C<is_secure> to check if authentication was I<completely> successful.
+
+You probably want to use C<new_from_cgi> instead.
+
+(DER encoded certificates should work too.)
+
+=item * C<< new_from_cgi($cgi_object) >>
+
+Performs FOAF+SSL authentication on a CGI object. This is a wrapper around
+C<new> which extracts the PEM-encoded client certificate from the CGI
+request. It has the same return values as C<new>.
+
+If $cgi_object is omitted, uses C<< CGI->new >> instead.
+
+=back
+
+=head2 Public Methods
+
+=over 4
+
+=item * C<< is_secure >>
+
+Returns true iff the FOAF+SSL authentication process was completely successful.
+
+=item * C<< subject >>
+
+Returns a L<CGI::Auth::FOAF_SSL::Agent> object which represents the subject
+of the certificate. 
+
+This method has aliases C<agent> and C<certified_thing> for back-compat
+reasons.
+
+=item * C<< cookie >>
+
+HTTP cookie related to the authentication process. Sending this to the
+client isn't strictly necessary, but it allows for a session to be
+established, greatly speeding up subsequent accesses. See also the
+COOKIES section of this documentation.
 
 =back
 

@@ -1,3 +1,6 @@
-TODO:
-* Add some more items to this list.
-* Add keywords to Makefile.PL
+* Moosify (perhaps Any::Moose).
+* On error, instead of returning undef from constructor, throw exception.
+* Perhaps release as 2.000 due to inevitable API changes,
+  or take a new distribution name (e.g. Web::ID).
+* Remove dependency on CGI.pm.
+* Cookie stuff could get moved into an optional Moose::Role.

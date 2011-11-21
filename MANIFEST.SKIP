@@ -1,8 +1,0 @@
-^CGI-Auth-FOAF_SSL-.\...\.tar\.gz$
-^TestScript\.pl$
-^Makefile$
-^blib/
-^pm_to_blib
-^blibdirs
-\.svn
-^MYMETA.yml

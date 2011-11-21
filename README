@@ -27,9 +27,6 @@ SYNOPSIS
         print "<p>Greetings stranger!</p>\n";
       }
 
-VERSION
-    1.001 (developer preview)
-
 DESCRIPTION
     FOAF+SSL (a.k.a. WebID) is a simple authentication scheme described at
     <http://esw.w3.org/topic/foaf+ssl>. This module implements the server

@@ -1,25 +1,37 @@
-############################################################################
-## Changes #################################################################
-############################################################################
-
 CGI-Auth-FOAF_SSL
 =================
 
 Created:      2009-02-05
-Home page:    <http://search.cpan.org/dist/CGI-Auth-FOAF_SSL/>
+Home page:    <https://metacpan.org/release/CGI-Auth-FOAF_SSL>
 Bug tracker:  <http://rt.cpan.org/Dist/Display.html?Queue=CGI-Auth-FOAF_SSL>
 Maintainer:   Toby Inkster <mailto:tobyink@cpan.org>
 
-1.001 [2011-04-02] # Stable release.
+1.002  2011-11-21
 
-1.001_02 [2011-01-18]
+ - Minor cleanups.
+ - Scalar::Util::refaddr unreliable for identifying objects; use
+   Object::ID::object_id instead.
+ - (Addition Update) Support for the cert:key property, the inverse of
+   cert:identity.
+ - (Update) use 5.010
+ - (Removal) Temporarily disable WWW::Finger stuff, as it's grown very
+   stale.
+ - (Packaging) Module::Package::RDF
+
+1.001  2011-04-02
+# Stable release.
+
+
+1.001_02  2011-01-18
+
  - Clean up code; add accessors to peek at much of the module's internal
    data.
  - Move some obscure documentation to a separate file.
  - No longer use Crypt::OpenSSL::X509 and DateTime::Format::Strptime.
  - use Crypt::X509 '0.50'.
 
-1.001_01 [2010-09-19]
+1.001_01  2010-09-19
+
  - Make WWW::Finger optional.
  - Remove dependencies on IPC::Open2, Encode and Carp.
  - Use Crypt::X509, Crypt::OpenSSL::X509, DateTime and
@@ -27,41 +39,56 @@ Maintainer:   Toby Inkster <mailto:tobyink@cpan.org>
    relying on the OpenSSL command-line client.
  - use common::sense.
 
-1.000 [2010-07-25]
+1.000  2010-07-25
+
  - Constructor returns an object where "->is_secure" is false rather than
    undef in the case of a certificate with no useful subjectAltName.
  - (Removal) No longer supports subjectAltName pointing at a
    foaf:OnlineAccount. subjectAltName is always assumed to point to a
    foaf:Agent.
 
-1.00_03 [2010-03-26]
+1.00_03  2010-03-26
+
  - Rename new_smiple to new_unauthenticated and document its usage.
  - Rename verify_certificate_by_XXX functions to authenticate_by_XXX, make
    them share common code, document their usage.
  - Use Math::BigInt instead of string comparison for comparing big
    hexadecimal numbers.
 
-1.00_02 [2010-03-21]
+1.00_02  2010-03-21
+
  - (Update) The rsa and cert vocabularies have been changed recently.
 
-1.00_01 [2010-02-10]
+1.00_01  2010-02-10
+
  - Documentation improvements
 
-1.00_00 [2010-02-05]
+1.00_00  2010-02-05
 
-0.52 [2009-12-16]
 
-0.51 [2009-12-15]
+0.52  2009-12-16
 
-0.50 [2009-12-14] # Trine Edition
 
-0.05 [2009-03-26]
+0.51  2009-12-15
 
-0.04 [2009-03-01]
 
-0.03 [2009-03-01]
+0.50  2009-12-14
+# Trine Edition
 
-0.02 [2009-02-19]
 
-0.01 [2009-02-05] # First release
+0.05  2009-03-26
+
+
+0.04  2009-03-01
+
+
+0.03  2009-03-01
+
+
+0.02  2009-02-19
+
+
+0.01  2009-02-05
+# First release
+
 

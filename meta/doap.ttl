@@ -1,0 +1,46 @@
+@prefix :        <http://usefulinc.com/ns/doap#> .
+@prefix dcs:     <http://ontologi.es/doap-changeset#> .
+@prefix dc:      <http://purl.org/dc/terms/> .
+@prefix foaf:    <http://xmlns.com/foaf/0.1/> .
+@prefix my:      <http://purl.org/NET/cpan-uri/dist/CGI-Auth-FOAF_SSL/> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix toby:    <http://tobyinkster.co.uk/#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+
+my:project
+	a               :Project ;
+	:name           "CGI-Auth-FOAF_SSL" ;
+	:shortdesc      "authentication using WebID (FOAF+SSL)"@en ;
+	:programming-language  "Perl" ;
+	:homepage       <https://metacpan.org/release/CGI-Auth-FOAF_SSL> ;
+	:download-page  <https://metacpan.org/release/CGI-Auth-FOAF_SSL> ;
+	:bug-database   <http://rt.cpan.org/Dist/Display.html?Queue=CGI-Auth-FOAF_SSL> ;
+	:repository     [ a :SVNRepository ; :browse <http://goddamn.co.uk/svn-web/perlmods/browse/CGI-Auth-FOAF_SSL/> ] ;
+	:maintainer     toby:i ;
+	:developer      toby:i ;
+	:documenter     toby:i ;
+	:tester         toby:i ;
+	:created        "2009-02-05"^^xsd:date ;
+	:license        <http://dev.perl.org/licenses/> ;
+	:category
+		[ rdfs:label "WebID"@en ] ,
+		[ rdfs:label "FOAF"@en ] ,
+		[ rdfs:label "SSL"@en ] ,
+		[ rdfs:label "TLS"@en ] ,
+		[ rdfs:label "FOAF+SSL"@en ] ,
+		[ rdfs:label "Authentication"@en ] ,
+		[ rdfs:label "Security"@en ] ,
+		[ rdfs:label "HTTPS"@en ] ,
+		[ rdfs:label "Web ID"@en ] ,
+		[ rdfs:label "x509"@en ] ,
+		[ rdfs:label "X.509"@en ] ,
+		[ rdfs:label "Auth"@en ] .
+
+toby:i
+
+	a               foaf:Person ;
+	foaf:name       "Toby Inkster" ;
+	foaf:homepage   <http://tobyinkster.co.uk/> ;
+	foaf:page       <https://metacpan.org/author/TOBYINK> ;
+	foaf:mbox       <mailto:tobyink@cpan.org> ;
+	<http://www.w3.org/2002/07/owl#sameAs> <http://purl.org/NET/cpan-uri/person/tobyink> .
