@@ -1,10 +1,9 @@
 package CGI::Auth::FOAF_SSL::Agent;
 
-use RDF::Query;
-use RDF::Query::Client;
-use RDF::Trine;
-
-our $VERSION = '1.003';
+BEGIN {
+	$CGI::Auth::FOAF_SSL::Agent::AUTHORITY = 'cpan:TOBYINK';
+	$CGI::Auth::FOAF_SSL::Agent::VERSION   = '1.921_00';
+}
 
 sub new
 {
@@ -14,6 +13,7 @@ sub new
 	$this->{'identity'}    = shift;
 	$this->{'model'}       = shift;
 	$this->{'endpoint'}    = shift;
+	$this->{'WebID'}       = shift;
 
 	bless $this, $class;
 }
@@ -40,42 +40,16 @@ sub _getter
 {
 	my $this  = shift;
 	my $key   = shift;
-	my @preds = @_;
+	my @preds = map { RDF::Trine::Node::Resource->new($_) } @_;
 	
-	PREDICATE: foreach my $p (@preds)
+	unless ($this->{$key})
 	{
-		last PREDICATE
-			if defined $this->{ $key };
-		
-		my $query_string = sprintf("SELECT ?x WHERE { <%s> <%s> ?x . } ORDER BY ?x", $this->identity, $p);
-		my $results;
-		
-		if (defined $this->model)
-		{
-			my $query = RDF::Query->new($query_string);
-			$results  = $query->execute($this->model);
-		}
-		elsif (defined $this->endpoint)
-		{
-			my $query = RDF::Query::Client->new($query_string);
-			$results  = $query->execute($this->endpoint, {QueryMethod=>'POST'});
-		}
-		
-		RESULT: while (my $row = $results->next)
-		{
-			last RESULT
-				if defined $this->{ $key };
-			
-			my $node = $row->{'x'};
-		
-			if (defined $node and $node->is_resource)
-				{ $this->{ $key } = $node->uri; }
-			elsif (defined $node and $node->is_literal)
-				{ $this->{ $key } = $node->literal_value; }
-		}
+		$this->{$key} = [ $this->{WebID}->get(@preds) ];
 	}
 	
-	return $this->{ $key };
+	wantarray
+		? @{ $this->{$key} } 
+		: $this->{$key}[0]
 }
 
 sub name
@@ -196,7 +170,7 @@ Toby Inkster, E<lt>tobyink@cpan.orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2009-2011 by Toby Inkster
+Copyright (C) 2009-2012 by Toby Inkster
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.

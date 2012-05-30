@@ -5,7 +5,6 @@
 @prefix my:      <http://purl.org/NET/cpan-uri/dist/CGI-Auth-FOAF_SSL/> .
 @prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix toby:    <http://tobyinkster.co.uk/#> .
-@prefix foaf:    <http://xmlns.com/foaf/0.1/> .
 @prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
 
 my:project :release my:v_0-01 .
@@ -234,17 +233,28 @@ my:v_1-002
 		] .
 
 _:kb foaf:name "Konstantin Baierer" .
-
+ 
 my:project :release my:v_1-003 .
 my:v_1-003
+    a               :Version ;
+    dc:issued       "2012-05-30"^^xsd:date ;
+    :revision       "1.003"^^xsd:string ;
+    :file-release   <http://backpan.cpan.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-1.003.tar.gz> ;
+    dcs:changeset [
+        dcs:versus my:v_1-002 ;
+        dcs:item   [ rdfs:label "Note that this package is deprecated in favour of Web::ID." ; a dcs:Documentation ] ;
+        dcs:item   [ rdfs:label "Drop dependency on RDF::TrineShortcuts; use RDF::TrineX::Functions." ] ;
+        dcs:item   [ rdfs:label "Improved error messages when certificate is used outside its validity period." ; dcs:blame _:kb ] ;
+        dcs:item   [ rdfs:label "Updated SPARQL to reflect changes to WebID spec." ; a dcs:Update ; dcs:blame _:kb ]
+    ] .
+	
+my:project :release my:v_1-921_00 .
+my:v_1-921_00
 	a               :Version ;
-	dc:issued       "2012-05-30"^^xsd:date ;
-	:revision       "1.003"^^xsd:string ;
-	:file-release   <http://backpan.cpan.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-1.003.tar.gz> ;
-	dcs:changeset [
-		dcs:versus my:v_1-002 ;
-		dcs:item   [ rdfs:label "Note that this package is deprecated in favour of Web::ID." ; a dcs:Documentation ] ;
-		dcs:item   [ rdfs:label "Drop dependency on RDF::TrineShortcuts; use RDF::TrineX::Functions." ] ;
-		dcs:item   [ rdfs:label "Improved error messages when certificate is used outside its validity period." ; dcs:blame _:kb ] ;
-		dcs:item   [ rdfs:label "Updated SPARQL to reflect changes to WebID spec." ; a dcs:Update ; dcs:blame _:kb ]
-	] .
+    dc:issued       "2012-05-30"^^xsd:date ;
+	:revision       "1.921_00"^^xsd:string ;
+	:file-release   <http://backpan.cpan.org/authors/id/T/TO/TOBYINK/CGI-Auth-FOAF_SSL-1.921_00.tar.gz> ;
+    dcs:changeset [
+        dcs:versus my:v_1-002 ;
+        dcs:item   [ rdfs:label "Complete rewrite; now a wrapper for Web::ID." ]
+    ] .

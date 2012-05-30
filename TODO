@@ -1,6 +1,3 @@
-* Moosify (perhaps Any::Moose).
-* On error, instead of returning undef from constructor, throw exception.
-* Perhaps release as 2.000 due to inevitable API changes,
-  or take a new distribution name (e.g. Web::ID).
-* Remove dependency on CGI.pm.
-* Cookie stuff could get moved into an optional Moose::Role.
+* CGI::Auth::FOAF_SSL should march in step with Web::ID,
+  version-number-wise, with them both reaching 2.000 stable
+  around Dec 2012.

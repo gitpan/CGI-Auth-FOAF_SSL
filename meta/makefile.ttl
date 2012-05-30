@@ -8,21 +8,11 @@
 	:readme_from _:main ;
 	:test_requires 
 		"Test::More 0.61" ;
-	:recommends
-		"Web::ID" ;
 	:requires
-		"common::sense" ,
-		"parent" ,
-		"CGI" ,
-		"CGI::Session" ,
-		"Crypt::X509 0.50" ,
-		"DateTime" ,
-		"LWP::UserAgent" ,
-		"Math::BigInt" ,
-		"MIME::Base64" ,
-		"Object::ID" ,
-		"RDF::TrineX::Functions 0.002" ,
-		"Scalar::Util 0" .
+		"Any::Moose" ,
+		"CGI",
+		"CGI::Session",
+		"Web::ID 1.921" .
 
 _:main <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#fileName> "lib/CGI/Auth/FOAF_SSL.pm" .
 
