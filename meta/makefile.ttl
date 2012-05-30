@@ -7,10 +7,9 @@
 	:version_from _:main ;
 	:readme_from _:main ;
 	:test_requires 
-		"Module::Pluggable 0.66" , # why?? do we need this?? did we ever need this??
 		"Test::More 0.61" ;
 	:recommends
-		"WWW::Finger 0.100" ;
+		"Web::ID" ;
 	:requires
 		"common::sense" ,
 		"parent" ,
@@ -22,7 +21,7 @@
 		"Math::BigInt" ,
 		"MIME::Base64" ,
 		"Object::ID" ,
-		"RDF::TrineShortcuts 0.100" ,
+		"RDF::TrineX::Functions 0.002" ,
 		"Scalar::Util 0" .
 
 _:main <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#fileName> "lib/CGI/Auth/FOAF_SSL.pm" .

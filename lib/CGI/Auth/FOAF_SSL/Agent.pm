@@ -4,7 +4,7 @@ use RDF::Query;
 use RDF::Query::Client;
 use RDF::Trine;
 
-our $VERSION = '1.001';
+our $VERSION = '1.003';
 
 sub new
 {

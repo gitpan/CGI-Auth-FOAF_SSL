@@ -27,6 +27,14 @@ SYNOPSIS
         print "<p>Greetings stranger!</p>\n";
       }
 
+DEPRECATION
+    CGI::Auth::FOAF_SSL was the original WebID module for Perl, but it is
+    now deprecated in favour of Web::ID.
+
+    Web::ID has a cleaner interface and is less CGI-specific. It should work
+    equally well in other HTTPS contexts. It has Plack middleware (but its
+    core does not rely on Plack). Use it.
+
 DESCRIPTION
     FOAF+SSL (a.k.a. WebID) is a simple authentication scheme described at
     <http://esw.w3.org/topic/foaf+ssl>. This module implements the server
@@ -162,7 +170,7 @@ AUTHOR
     Toby Inkster, <tobyink@cpan.org>
 
 COPYRIGHT AND LICENSE
-    Copyright (C) 2009-2011 by Toby Inkster
+    Copyright (C) 2009-2012 by Toby Inkster
 
     This library is free software; you can redistribute it and/or modify it
     under the same terms as Perl itself.

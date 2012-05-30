@@ -16,9 +16,9 @@ inc/Module/Install/Win32.pm
 inc/Module/Install/WriteAll.pm
 inc/Module/Package.pm
 inc/Module/Package/Dist/RDF.pm
-inc/parent.pm
 inc/Scalar/Util.pm
 inc/Scalar/Util/PP.pm
+inc/unicore/Name.pm
 inc/YAML/Tiny.pm
 lib/CGI/Auth/FOAF_SSL.pm
 lib/CGI/Auth/FOAF_SSL/Advanced.pod

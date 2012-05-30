@@ -13,14 +13,16 @@ use LWP::UserAgent 0;
 use Math::BigInt 0 try => 'GMP';
 use MIME::Base64 0 qw[];
 use Object::ID 0;
-use RDF::TrineShortcuts 0.100;
+use RDF::TrineX::Functions -shortcuts;
 use Scalar::Util 0 qw[blessed];
+
+# use Data::Printer 0;
 
 use constant {
 	VALIDATION_PEM     => 1,
 	VALIDATION_DATES   => 2,
 	VALIDATION_WEBID   => 3,
-	};
+};
 	
 our $VERSION;
 our $ua_string;
@@ -30,9 +32,9 @@ my ($AGENT, $MODEL, $SESSION); # inside-out objects
 
 BEGIN
 {
-	$VERSION = '1.002';
-	$ua_string = sprintf('%s/%s ', __PACKAGE__, $VERSION);	
-
+	$VERSION = '1.003';
+	$ua_string = sprintf('%s/%s ', __PACKAGE__, $VERSION);
+	
 	$WWW_Finger = 0;
 	if (0) # DISABLED
 	{
@@ -51,6 +53,33 @@ BEGIN
 	$SESSION = {};
 }
 
+sub rdf_query
+{
+	my ($sparql, $model) = @_;
+	my $class   = (blessed($model) and $model->isa('RDF::Trine::Model'))
+		? 'RDF::Query'
+		: 'RDF::Query::Client';
+	my $query   = $class->new($sparql);
+	my $results = $query->execute($model);
+	
+	unless ($results)
+	{
+		warn "$sparql";
+		warn "$model";
+		warn $query->error;
+		return;
+	}
+
+	if ($results->is_boolean)
+		{ return $results->get_boolean }
+	if ($results->is_bindings)
+		{ return $results }
+	if ($results->is_graph)
+		{ my $m = rdf_parse(); $m->add_hashref($results->as_hashref); return $m }
+	
+	return;
+}
+
 sub new
 {
 	my ($class, $pem, @params) = @_;
@@ -60,9 +89,17 @@ sub new
 	return unless $self->validation(VALIDATION_PEM);
 	
 	my $now = DateTime->now;
-	return if defined $self->cert_not_before && $now < $self->cert_not_before;
-	return if defined $self->cert_not_after  && $now > $self->cert_not_after;
-
+	if (defined $self->cert_not_before && $now < $self->cert_not_before)
+	{
+		warn "Certificate isn't valid yet! Try again on " . $self->cert_not_before->iso8601;
+		return;
+	}
+	if (defined $self->cert_not_after  && $now > $self->cert_not_after)
+	{
+		warn "Certificate has expired on " . $self->cert_not_after->iso8601;
+		return;
+	}
+	
 	$self->validation(VALIDATION_DATES);
 	
 	my $verified;
@@ -151,13 +188,13 @@ sub subject
 {
 	my ($self) = @_;
 
-	$AGENT->{ object_id($self) } ||= CGI::Auth::FOAF_SSL::Agent->new(
+	$AGENT->{ $self->object_id } ||= CGI::Auth::FOAF_SSL::Agent->new(
 		$self->subject_uri,
 		$self->subject_model,
 		$self->subject_endpoint,
 		);
 
-	return $AGENT->{ object_id($self) };
+	return $AGENT->{ $self->object_id };
 }
 
 *certified_thing = \&subject;
@@ -198,7 +235,7 @@ sub authenticate_by_sparql
 {
 	my ($self, $uri, $model, $fp) = @_;
 	
-	my $query_string = sprintf(<<'SPARQL', $uri);
+	my $query_string = sprintf(<<'SPARQL', (($uri)x4));
 PREFIX cert: <http://www.w3.org/ns/auth/cert#>
 PREFIX rsa: <http://www.w3.org/ns/auth/rsa#>
 SELECT
@@ -221,7 +258,20 @@ WHERE
 			rsa:modulus ?modulus ;
 			rsa:public_exponent ?exponent .
 	}
-
+	UNION
+	{
+		?key
+			cert:identity <%s> ;
+			cert:modulus ?modulus ;
+			cert:exponent ?exponent .
+	}
+	UNION
+	{
+		<%s> cert:key ?key .
+		?key
+			cert:modulus ?modulus ;
+			cert:exponent ?exponent .
+	}
 	OPTIONAL { ?modulus cert:hex ?hexModulus . }
 	OPTIONAL { ?exponent cert:decimal ?decExponent . }
 }
@@ -231,6 +281,9 @@ SPARQL
 	
 	RESULT: while (my $result = $results->next)
 	{
+		# trim any whitespace around modulus (HACK for MyProfile WebIDs)
+		$result->{modulus}->[0] =~ s/(^\s+)|(\s+$)//g;
+		
 		my $correct_modulus  = $self->make_bigint_from_node(
 			$result->{modulus},
 			fallback      => $result->{hexModulus},
@@ -246,7 +299,7 @@ SPARQL
 			);
 		next RESULT
 			unless $correct_exponent == $self->cert_exponent;
-
+		
 		$self->validation(VALIDATION_WEBID);
 		$self->subject_uri($uri);
 		
@@ -350,9 +403,9 @@ sub subject_model
 	my ($self) = shift;
 	if (@_)
 	{
-		$MODEL->{ object_id($self) } = shift;
+		$MODEL->{ $self->object_id } = shift;
 	}
-	return $MODEL->{ object_id($self) };
+	return $MODEL->{ $self->object_id };
 }
 
 # Documentation in Advanced.pod
@@ -373,17 +426,17 @@ sub session
 	
 	if (@_)
 	{
-		$SESSION->{ object_id($self) } = shift;
+		$SESSION->{ $self->object_id } = shift;
 	}
-
-	unless (defined $SESSION->{ object_id($self) })
+	
+	unless (defined $SESSION->{ $self->object_id })
 	{
 		my $s = CGI::Session->new('driver:file', undef, {Directory => File::Spec->tmpdir});
 		$s->expire('+1h');
-		$SESSION->{ object_id($self) } = $s;
+		$SESSION->{ $self->object_id } = $s;
 	}
 	
-	return $SESSION->{ object_id($self) };
+	return $SESSION->{ $self->object_id };
 }
 
 # Documentation in Advanced.pod
@@ -404,7 +457,11 @@ sub get_trine_model
 	$ua->default_headers->push_header('Accept' => "application/rdf+xml, text/turtle, application/x-turtle, application/xhtml+xml;q=0.9, text/html;q=0.9, */*;q=0.1");
 	my $response = $ua->get($uri);
 	return unless $response->is_success && length $response->content;
-	my $model = rdf_parse($response);
+	my $model = rdf_parse(
+		$response->decoded_content,
+		type  => scalar($response->content_type),
+		base  => ($response->base || $uri),
+	);
 	
 	$self->session->param($uri, rdf_string($model, 'ntriples'));
 	$self->session->flush;
@@ -419,7 +476,11 @@ sub make_bigint_from_node
 	
 	if ($node->is_literal)
 	{
-		if ($node->literal_datatype eq 'http://www.w3.org/ns/auth/cert#hex')
+		# HACK to make MyProfile WebIDs parseable (missing the xsd namespace)
+		$node->[2] =~ s@^xsd:@http://www.w3.org/2001/XMLSchema#@;
+		
+		if ( $node->literal_datatype eq 'http://www.w3.org/ns/auth/cert#hex'
+		or   $node->literal_datatype eq 'http://www.w3.org/2001/XMLSchema#hexBinary' )
 		{
 			my $hex = $node->literal_value;
 			$hex =~ s/[^0-9A-F]//ig;
@@ -519,6 +580,15 @@ CGI::Auth::FOAF_SSL - authentication using WebID (FOAF+SSL)
   {
     print "<p>Greetings stranger!</p>\n";
   }
+
+=head1 DEPRECATION
+
+CGI::Auth::FOAF_SSL was the original WebID module for Perl, but it is
+now deprecated in favour of L<Web::ID>.
+
+L<Web::ID> has a cleaner interface and is less CGI-specific. It should
+work equally well in other HTTPS contexts. It has L<Plack> middleware
+(but its core does not rely on Plack). Use it.
 
 =head1 DESCRIPTION
 
@@ -679,7 +749,7 @@ Toby Inkster, E<lt>tobyink@cpan.orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2009-2011 by Toby Inkster
+Copyright (C) 2009-2012 by Toby Inkster
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.

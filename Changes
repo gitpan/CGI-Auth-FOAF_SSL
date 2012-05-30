@@ -6,20 +6,30 @@ Home page:    <https://metacpan.org/release/CGI-Auth-FOAF_SSL>
 Bug tracker:  <http://rt.cpan.org/Dist/Display.html?Queue=CGI-Auth-FOAF_SSL>
 Maintainer:   Toby Inkster <mailto:tobyink@cpan.org>
 
+1.003  2012-05-30
+
+ - (Documentation) Note that this package is deprecated in favour of
+   Web::ID.
+ - (Update) Updated SPARQL to reflect changes to WebID spec.
+   ++"Konstantin Baierer"
+ - Drop dependency on RDF::TrineShortcuts; use RDF::TrineX::Functions.
+ - Improved error messages when certificate is used outside its validity
+   period.
+   ++"Konstantin Baierer"
+
 1.002  2011-11-21
 
+ - (Addition Update) Support for the cert:key property, the inverse of
+   cert:identity.
+ - (Packaging) Module::Package::RDF
+ - (Removal) Temporarily disable WWW::Finger stuff, as it's grown very
+   stale.
+ - (Update) use 5.010
  - Minor cleanups.
  - Scalar::Util::refaddr unreliable for identifying objects; use
    Object::ID::object_id instead.
- - (Addition Update) Support for the cert:key property, the inverse of
-   cert:identity.
- - (Update) use 5.010
- - (Removal) Temporarily disable WWW::Finger stuff, as it's grown very
-   stale.
- - (Packaging) Module::Package::RDF
 
-1.001  2011-04-02
-# Stable release.
+1.001  2011-04-02  # Stable release.
 
 
 1.001_02  2011-01-18
@@ -41,11 +51,11 @@ Maintainer:   Toby Inkster <mailto:tobyink@cpan.org>
 
 1.000  2010-07-25
 
- - Constructor returns an object where "->is_secure" is false rather than
-   undef in the case of a certificate with no useful subjectAltName.
  - (Removal) No longer supports subjectAltName pointing at a
    foaf:OnlineAccount. subjectAltName is always assumed to point to a
    foaf:Agent.
+ - Constructor returns an object where "->is_secure" is false rather than
+   undef in the case of a certificate with no useful subjectAltName.
 
 1.00_03  2010-03-26
 
@@ -72,8 +82,7 @@ Maintainer:   Toby Inkster <mailto:tobyink@cpan.org>
 0.51  2009-12-15
 
 
-0.50  2009-12-14
-# Trine Edition
+0.50  2009-12-14  # Trine Edition
 
 
 0.05  2009-03-26
@@ -88,7 +97,6 @@ Maintainer:   Toby Inkster <mailto:tobyink@cpan.org>
 0.02  2009-02-19
 
 
-0.01  2009-02-05
-# First release
+0.01  2009-02-05  # First release
 
 

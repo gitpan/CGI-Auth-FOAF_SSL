@@ -3,13 +3,13 @@ abstract: 'authentication using WebID (FOAF+SSL)'
 author:
   - 'Toby Inkster <tobyink@cpan.org>'
 build_requires:
-  ExtUtils::MakeMaker: 6.42
-  Module::Pluggable: 0.66
+  ExtUtils::MakeMaker: 6.59
   Test::More: 0.61
 configure_requires:
-  ExtUtils::MakeMaker: 6.42
+  ExtUtils::MakeMaker: 6.59
 distribution_type: module
-generated_by: 'Module::Install version 1.02'
+dynamic_config: 1
+generated_by: 'Module::Install version 1.06'
 keywords:
   - Auth
   - Authentication
@@ -36,7 +36,7 @@ no_index:
     - t
     - xt
 recommends:
-  WWW::Finger: 0.100
+  Web::ID: 0
 requires:
   CGI: 0
   CGI::Auth::FOAF_SSL::Agent: 0
@@ -48,7 +48,7 @@ requires:
   MIME::Base64: 0
   Math::BigInt: 0
   Object::ID: 0
-  RDF::TrineShortcuts: 0.100
+  RDF::TrineX::Functions: 0.002
   Scalar::Util: 0
   common::sense: 0
   parent: 0
@@ -58,4 +58,4 @@ resources:
   homepage: https://metacpan.org/release/CGI-Auth-FOAF_SSL
   license: http://dev.perl.org/licenses/
   repository: http://goddamn.co.uk/svn-web/perlmods/browse/CGI-Auth-FOAF_SSL/
-version: 1.002
+version: 1.003
